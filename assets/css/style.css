@@ -466,72 +466,42 @@ margin:0.5em 0;
   overflow:hidden;
   z-index:2;
   position:absolute;
+  pointer-events:none;
+  user-select:none;
 }
 
 .bingoLetter:hover {
-  cursor:pointer;
-  color:#e24e53;
+  cursor:default;
+  color:#ce181e;
 }
 
 .bingoLetterGray {
   color:#969696;
 }
 
-.bingoLetterGray:hover {
-  color:#808080;
-}
-
-#blocker {
-  position:relative;
-  width:1280px;
-  height:720px;
-  margin-top:-720px;
-  background-image: linear-gradient(#c4bd97, #948A54);
-  z-index:1;
-  left:1287px;
-  box-shadow: 5px 0 7px 7px rgba(0,0,0,0.6);
-  transition: left 0.5s, opacity 0.3s;
-}
-
-.boardToggle {
-  width:115px;
-  height:26px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:14.5px;
-  margin: 26px auto 0 auto;
-  cursor:pointer;
-  border-radius: 12px 0 12px 0;
-  transition:background-color 0.15s;
-}
-
-#hideBoard {
-  background-color:rgba(75,172,198,0.3);
-  border: 1px solid rgba(49,133,156,0.65);
-}
-
-#hideBoard:hover {
-  background-color:rgba(75,172,198,0.5);
-}
-
-#showBoard {
-  background-color:rgba(192,80,77,0.3);
-  border: 1px solid rgba(192,80,77,0.65);
-}
-
-#showBoard:hover {
-  background-color:rgba(192,80,77,0.5);
+.controlsHeader {
+  margin: 12px auto 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 245px;
 }
 
 .smallButton {
-  font-size:13px;
+  font-size:11.5px;
   font-family:arial,sans-serif;
   cursor:pointer;
-  padding: 3px 6px;
+  padding: 4px 6px;
   border-radius:6px;
-  transition:background-color 0.15s;
-  margin-right:14px;
+  transition:background-color 0.15s, opacity 0.15s;
+  user-select:none;
+  white-space:nowrap;
+}
+
+#reset {
+  background-color:rgba(206,24,30,0.1);
+  border:1px solid rgba(206,24,30,0.3);
 }
 
 #reset:hover {
@@ -542,8 +512,85 @@ margin:0.5em 0;
   background-color:rgba(255,0,0,0.5);
 }
 
+#undoButton {
+  background-color:rgba(0,0,0,0.08);
+  border:1px solid rgba(0,0,0,0.2);
+}
+
+#undoButton:hover:not(.disabled) {
+  background-color:rgba(0,0,0,0.18);
+}
+
+#undoButton.disabled {
+  opacity:0.35;
+  cursor:not-allowed;
+  pointer-events:none;
+}
+
+#themes {
+  background-color:rgba(0,0,0,0.05);
+  border:1px solid rgba(0,0,0,0.15);
+}
+
 #themes:hover {
   background-color:rgba(80,80,80,0.25);
+}
+
+#recentHistoryContainer {
+  width: 242px;
+  margin: 22px auto 0 auto;
+  padding: 8px 4px;
+  background: rgba(0, 0, 0, 0.08);
+  border: 1.5px solid rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+#recentHistoryTitle {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #444;
+  margin-bottom: 5px;
+  font-family: arial, sans-serif;
+}
+
+#recentHistoryList {
+  font-size: 13.5px;
+  font-weight: 700;
+  font-family: arial, sans-serif;
+  color: #222;
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.historyEmpty {
+  font-size: 13px;
+  font-weight: normal;
+  color: #666;
+  font-style: italic;
+}
+
+.historyBall {
+  padding: 1px 2px;
+  border-radius: 4px;
+}
+
+.historyBallLatest {
+  background: rgba(206, 24, 30, 0.15);
+  color: #b7151a;
+  border: 1px solid rgba(206, 24, 30, 0.35);
+  padding: 1px 4px;
+}
+
+.historySeparator {
+  color: #888;
+  margin: 0 1px;
 }
 
 .bigBingoBallClass {
@@ -557,7 +604,7 @@ margin:0.5em 0;
   width:186px;
   height:186px;
   margin:0 auto;
-  margin-top:135px;
+  margin-top:36px;
   cursor:pointer;
 }
 
@@ -595,7 +642,7 @@ margin:0.5em 0;
   background:rgba(179,162,199,0.67);
   border:1.2px solid rgba(74,126,187,0.85);
   border-radius:12px;
-  margin:9px auto 0 auto;
+  margin:24px auto 0 auto;
   display:flex;
   align-items:center;
   justify-content:center;

@@ -1,3 +1,13 @@
+/**
+ * COPAFA Bingo - Motor de Control y Tablero Maestro
+ * Basado en Bingo Master Board v3.0.1 (c) 2011-2018 Timothy Hsu (Games by Tim)
+ * Distribuido bajo la Licencia MIT (ver archivo LICENSE)
+ *
+ * Adaptación funcional Fase 1: Registro manual exclusivo, eliminación de sorteo digital,
+ * protección contra borrados accidentales, función Deshacer último, confirmación de reset
+ * e historial visual de balotas registradas.
+ */
+
 const fixedWidth = document.getElementById("area").offsetWidth;
 const fixedHeight = document.getElementById("area").offsetHeight;
 let isFullScreen = false;
@@ -8,68 +18,76 @@ let saveData = {
   drawnBingoBalls: [],
   themeColor: "classic",
   bingoStyle: "ball",
-  blockerEnabled: false,
-  lastActionWasRemove: false,
   ballsDrawnRemaining: "drawn",
-  hiddenBingoLetters: [],
-  winningPattern: [],
   firstRun: 0
-}
+};
 
-if(supportsLocalStorage) {
-  if (localStorage.getItem("bingoMasterBoardSaveData")) {
-    const parsedData = JSON.parse(localStorage.getItem("bingoMasterBoardSaveData"));
-    for (let i = 0; i < Object.keys(parsedData).length; i += 1) {
-      if (saveData.hasOwnProperty(Object.getOwnPropertyNames(parsedData)[i])) {
-        saveData[Object.keys(saveData)[Object.keys(saveData).indexOf(Object.getOwnPropertyNames(parsedData)[i])]]
-        = parsedData[Object.keys(parsedData)[i]];
+function loadSavedData() {
+  if (supportsLocalStorage && localStorage.getItem("bingoMasterBoardSaveData")) {
+    try {
+      const parsedData = JSON.parse(localStorage.getItem("bingoMasterBoardSaveData"));
+      if (parsedData && typeof parsedData === "object") {
+        if (Array.isArray(parsedData.drawnBingoBalls)) {
+          saveData.drawnBingoBalls = parsedData.drawnBingoBalls;
+        }
+        if (parsedData.themeColor) {
+          saveData.themeColor = parsedData.themeColor;
+        }
+        if (parsedData.bingoStyle) {
+          saveData.bingoStyle = parsedData.bingoStyle;
+        }
+        if (parsedData.ballsDrawnRemaining) {
+          saveData.ballsDrawnRemaining = parsedData.ballsDrawnRemaining;
+        }
+        if (parsedData.firstRun !== undefined) {
+          saveData.firstRun = parsedData.firstRun;
+        }
       }
+    } catch (err) {
+      console.error("Error al leer datos desde localStorage:", err);
     }
   }
 }
 
+loadSavedData();
+
 function save() {
   if (supportsLocalStorage) {
-    localStorage.setItem('bingoMasterBoardSaveData', JSON.stringify(saveData));
+    localStorage.setItem("bingoMasterBoardSaveData", JSON.stringify(saveData));
   }
 }
 
 function init() {
-	resize();
-	window.addEventListener('resize', resize);
-	document.addEventListener("fullscreenchange", onFullScreenChange, false);
-	document.addEventListener("webkitfullscreenchange", onFullScreenChange, false);
-	document.addEventListener("mozfullscreenchange", onFullScreenChange, false);
-	const bingoBallClass = document.querySelectorAll(".bingoBall");
-	for (let i = 0; i < bingoBallClass.length; i+=1) {
-		bingoBallClass[i].addEventListener("click", () => {activateBingoBall(i+1)});
-	}
+  resize();
+  window.addEventListener("resize", resize);
+  document.addEventListener("fullscreenchange", onFullScreenChange, false);
+  document.addEventListener("webkitfullscreenchange", onFullScreenChange, false);
+
+  const bingoBallClass = document.querySelectorAll(".bingoBall");
+  for (let i = 0; i < bingoBallClass.length; i += 1) {
+    bingoBallClass[i].addEventListener("click", () => {
+      activateBingoBall(i + 1);
+    });
+  }
+
   let param = location.search;
   if (param === "?masterboard") {
     setTimeout(() => {
       hide("titleSlide");
       show("fullScreenToggleLayer");
-  		show("masterBoardSlide", "grid");
-  	},50);
+      show("masterBoardSlide", "grid");
+    }, 50);
   } else {
-    if (saveData.firstRun === 0 && supportsLocalStorage) {
-      saveData.firstRun = 1;
-      save();
-      setTimeout(() => {
-        hide("titleSlide");
-        show("fullScreenToggleLayer");
-        show("onboardingSlide");
-      },50);
-    } else {
-      setTimeout(() => {
-        show("fullScreenToggleLayer");
-        show("titleSlide");
-      },50);
-    }
+    setTimeout(() => {
+      show("fullScreenToggleLayer");
+      show("titleSlide");
+    }, 50);
   }
-  document.onkeyup = function() {
+
+  document.onkeyup = function () {
     keyPressed = false;
-  }
+  };
+
   const img1 = new Image();
   const img2 = new Image();
   const img3 = new Image();
@@ -81,26 +99,29 @@ function init() {
 function resize() {
   const viewNames = [
     document.getElementById("area"),
-  	document.getElementById("fader"),
-		document.getElementById("fullScreenToggleLayer"),
-		document.getElementById("drawBallLayer")
+    document.getElementById("fader"),
+    document.getElementById("fullScreenToggleLayer")
   ];
-  let areaMultiplier = viewNames[0].offsetHeight/viewNames[0].offsetWidth;
-  let windowMultiplier = window.innerHeight/window.innerWidth;
-  if (windowMultiplier < areaMultiplier) { // window is wider
-    for (let i = 0; i<viewNames.length; i+=1) {
-        viewNames[i].style.transform = `scale(` + (window.innerHeight/fixedHeight) + `)`;
+  let areaMultiplier = viewNames[0].offsetHeight / viewNames[0].offsetWidth;
+  let windowMultiplier = window.innerHeight / window.innerWidth;
+  if (windowMultiplier < areaMultiplier) {
+    for (let i = 0; i < viewNames.length; i += 1) {
+      if (viewNames[i]) {
+        viewNames[i].style.transform = `scale(` + window.innerHeight / fixedHeight + `)`;
+      }
     }
   } else {
-    for (let i = 0; i<viewNames.length; i+=1) {
-      viewNames[i].style.transform = `scale(` + (window.innerWidth/fixedWidth) + `)`;
+    for (let i = 0; i < viewNames.length; i += 1) {
+      if (viewNames[i]) {
+        viewNames[i].style.transform = `scale(` + window.innerWidth / fixedWidth + `)`;
+      }
     }
-
   }
 }
 
 function onFullScreenChange() {
-  var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+  const fullscreenElement =
+    document.fullscreenElement || document.webkitFullscreenElement;
   if (fullscreenElement === null || fullscreenElement === undefined) {
     isFullScreen = false;
   } else {
@@ -110,147 +131,132 @@ function onFullScreenChange() {
 }
 
 function show(elementName, display) {
-  document.getElementById("fader").classList.add("notransition");
-  document.getElementById("fader").style.opacity = "1";
-	if (display === "flex") {
-	  document.getElementById(elementName).style.display = "flex";
-	} else if (display === "grid") {
-	  document.getElementById(elementName).style.display = "grid";
-	} else {
-	  document.getElementById(elementName).style.display = "block";
-	}
-	if (elementName === "masterBoardSlide") {
-		changeBG(saveData.themeColor);
-		document.getElementById("drawBallLayer").style.display = "block";
-		document.getElementById("fullScreenToggle").classList.add("fullScreenToggleSmall");
-		document.getElementById("homeButton").style.display = "block";
+  const fader = document.getElementById("fader");
+  fader.classList.add("notransition");
+  fader.style.opacity = "1";
+
+  const targetEl = document.getElementById(elementName);
+  if (targetEl) {
+    if (display === "flex") {
+      targetEl.style.display = "flex";
+    } else if (display === "grid") {
+      targetEl.style.display = "grid";
+    } else {
+      targetEl.style.display = "block";
+    }
+  }
+
+  if (elementName === "masterBoardSlide") {
+    changeBG(saveData.themeColor);
+    document.getElementById("fullScreenToggle").classList.add("fullScreenToggleSmall");
+    document.getElementById("homeButton").style.display = "block";
     if (loadedMasterBoard === false) {
       setUpMasterBoard();
       loadedMasterBoard = true;
     }
-    document.onkeydown = function(e) {
-      if(!keyPressed) {
-        e.preventDefault();
+    document.onkeydown = function (e) {
+      if (!keyPressed) {
         keyPressed = true;
-        if (e.keyCode === 32) {randomDraw();}
-        else if (e.keyCode === 82) {resetBoard();}
-        else if (e.keyCode === 88) {toggleBlocker();}
-        else if (e.keyCode === 66) {hideBingo('B', 'toggle');}
-        else if (e.keyCode === 73) {hideBingo('I', 'toggle');}
-        else if (e.keyCode === 78) {hideBingo('N', 'toggle');}
-        else if (e.keyCode === 71) {hideBingo('G', 'toggle');}
-        else if (e.keyCode === 79) {hideBingo('O', 'toggle');}
-        else if (e.keyCode === 84) {hide('masterBoardSlide');show('settingsSlide', 'grid');}
-        else if (e.keyCode === 87) {hide('masterBoardSlide');show('winningPatternSlide', 'grid');}
-        else if (e.keyCode === 86) {toggleBallsDrawnRemaining('toggle');}
-        else if (e.keyCode === 72) {hide('masterBoardSlide');show('titleSlide');}
-        else if (e.keyCode === 70) {toggleFullScreen();}
+        if (e.keyCode === 82) {
+          // 'r' -> Reset con confirmación
+          e.preventDefault();
+          confirmResetBoard();
+        } else if (e.keyCode === 90 && (e.ctrlKey || e.metaKey)) {
+          // Ctrl+Z / Cmd+Z -> Deshacer último
+          e.preventDefault();
+          undoLastBall();
+        } else if (e.keyCode === 85) {
+          // 'u' -> Deshacer último
+          e.preventDefault();
+          undoLastBall();
+        } else if (e.keyCode === 84) {
+          // 't' -> Themes
+          e.preventDefault();
+          hide("masterBoardSlide");
+          show("settingsSlide", "grid");
+        } else if (e.keyCode === 86) {
+          // 'v' -> Alternar balotas jugadas / restantes
+          e.preventDefault();
+          toggleBallsDrawnRemaining("toggle");
+        } else if (e.keyCode === 72) {
+          // 'h' -> Home / Título
+          e.preventDefault();
+          hide("masterBoardSlide");
+          show("titleSlide");
+        } else if (e.keyCode === 70) {
+          // 'f' -> Pantalla completa
+          e.preventDefault();
+          toggleFullScreen();
+        }
       }
-    }
-	}
-  else if (elementName === "settingsSlide") {
-    setUpSettings(saveData.themeColor);
-    document.onkeydown = function(e) {
-      if(!keyPressed) {
-        e.preventDefault();
+    };
+  } else if (elementName === "settingsSlide") {
+    setUpSettings();
+    document.onkeydown = function (e) {
+      if (!keyPressed) {
         keyPressed = true;
-        if (e.keyCode === 84 || e.keyCode === 13) {hide('settingsSlide');show('masterBoardSlide', 'grid');}
-        else if (e.keyCode === 70) {toggleFullScreen();}
+        if (e.keyCode === 84 || e.keyCode === 13) {
+          e.preventDefault();
+          hide("settingsSlide");
+          show("masterBoardSlide", "grid");
+        } else if (e.keyCode === 70) {
+          e.preventDefault();
+          toggleFullScreen();
+        }
       }
-    }
+    };
+  } else if (elementName === "titleSlide") {
+    document.onkeydown = function (e) {
+      if (!keyPressed) {
+        keyPressed = true;
+        if (e.keyCode === 13) {
+          e.preventDefault();
+          hide("titleSlide");
+          show("masterBoardSlide", "grid");
+        } else if (e.keyCode === 70) {
+          e.preventDefault();
+          toggleFullScreen();
+        }
+      }
+    };
   }
-  else if (elementName === "winningPatternSlide") {
-    document.onkeydown = function(e) {
-      if(!keyPressed) {
-        e.preventDefault();
-        keyPressed = true;
-        if (e.keyCode === 87 || e.keyCode === 13) {hideBingoLettersBasedOnWinningPattern();hide('winningPatternSlide');show('masterBoardSlide', 'grid');}
-        else if (e.keyCode === 70) {toggleFullScreen();}
-      }
-    }
-  }
-  else if (elementName === "titleSlide") {
-    document.onkeydown = function(e) {
-      if(!keyPressed) {
-        e.preventDefault();
-        keyPressed = true;
-        if (e.keyCode === 13) {hide('titleSlide');show('masterBoardSlide', 'grid');}
-        else if (e.keyCode === 70) {toggleFullScreen();}
-      }
-    }
-  }
-  else if (elementName === "howToUseSlide") {
-    document.onkeydown = function(e) {
-      if(!keyPressed) {
-        e.preventDefault();
-        keyPressed = true;
-        if (e.keyCode === 37) {keyboardNavHowToUse(0);}
-        else if (e.keyCode === 39) {keyboardNavHowToUse(1);}
-        else if (e.keyCode === 70) {toggleFullScreen();}
-        else if (e.keyCode === 13) {hide('howToUseSlide');show('titleSlide');}
-      }
-    }
-  }
-  else if (elementName === "aboutCreditsSlide") {
-    document.onkeydown = function(e) {
-      if(!keyPressed) {
-        e.preventDefault();
-        keyPressed = true;
-        if (e.keyCode === 37) {keyboardNavCredits(0);}
-        else if (e.keyCode === 39) {keyboardNavCredits(1);}
-        else if (e.keyCode === 70) {toggleFullScreen();}
-        else if (e.keyCode === 13) {hide('aboutCreditsSlide');show('titleSlide');}
-      }
-    }
-  }
-  else {
-    document.onkeydown = function(e) {
-      if(!keyPressed) {
-        e.preventDefault();
-        keyPressed = true;
-        if (e.keyCode === 70) {toggleFullScreen();}
-      }
-    }
-  }
-	setTimeout(() => {
-	  document.getElementById("fader").classList.remove("notransition");
-	  document.getElementById("fader").style.opacity = "0";
-	},50);
+
+  setTimeout(() => {
+    fader.classList.remove("notransition");
+    fader.style.opacity = "0";
+  }, 50);
 }
 
 function hide(elementName) {
-  document.getElementById(elementName).style.display = "none";
-	if (elementName === "masterBoardSlide") {
-		changeBG();
-		document.getElementById("drawBallLayer").style.display = "none";
-		document.getElementById("fullScreenToggle").classList.remove("fullScreenToggleSmall");
-		document.getElementById("homeButton").style.display = "none";
-	}
+  const targetEl = document.getElementById(elementName);
+  if (targetEl) {
+    targetEl.style.display = "none";
+  }
+  if (elementName === "masterBoardSlide") {
+    changeBG();
+    document.getElementById("fullScreenToggle").classList.remove("fullScreenToggleSmall");
+    document.getElementById("homeButton").style.display = "none";
+  }
 }
 
-function toggleFullScreen(event) {
-	const canvas = document.body;
-	if (isFullScreen === false) {
-		if(canvas.requestFullScreen) {
-			canvas.requestFullScreen();
-		} else if(canvas.webkitRequestFullScreen) {
-			canvas.webkitRequestFullScreen();
-		} else if(canvas.mozRequestFullScreen) {
-			canvas.mozRequestFullScreen();
-		}
-		isFullScreen = true;
-	}
-	else if (isFullScreen === true) {
-		if(document.exitFullscreen) {
-	  		document.exitFullscreen();
-			} else if(document.mozCancelFullScreen) {
-	  		document.mozCancelFullScreen();
-			} else if(document.webkitExitFullscreen) {
-	  		document.webkitExitFullscreen();
-			}
-		isFullScreen = false;
-	}
-	changeFullScreenImg();
+function toggleFullScreen() {
+  const canvas = document.body;
+  if (isFullScreen === false) {
+    if (canvas.requestFullscreen) {
+      canvas.requestFullscreen();
+    } else if (canvas.webkitRequestFullscreen) {
+      canvas.webkitRequestFullscreen();
+    }
+    isFullScreen = true;
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
+    isFullScreen = false;
+  }
+  changeFullScreenImg();
 }
 
 function changeFullScreenImg() {
@@ -267,64 +273,26 @@ function changeBG(color) {
   let newColor;
   if (color === "classic") {
     newColor = "#d1cc85";
-    document.getElementById("blocker").style.backgroundImage = "linear-gradient(#c4bd97, #948A54)";
   } else if (color === "red") {
     newColor = "rgb(253, 166, 166)";
-    document.getElementById("blocker").style.backgroundImage = "linear-gradient(#ed9f9d, #c0504d)";
   } else if (color === "green") {
     newColor = "rgb(150, 206, 129)";
-    document.getElementById("blocker").style.backgroundImage = "linear-gradient(#a9c571, #77933c)";
   } else if (color === "blue") {
     newColor = "rgb(139, 199, 226)";
-    document.getElementById("blocker").style.backgroundImage = "linear-gradient(#9abce6, #558ed5)";
   } else if (color === "purple") {
     newColor = "rgb(189, 176, 216)";
-    document.getElementById("blocker").style.backgroundImage = "linear-gradient(#b3a2c7, #725892)";
   } else {
     newColor = "radial-gradient(#f7eaab, #bfbb73)";
   }
-	document.getElementById("area").style.background=newColor;
-	document.getElementById("fader").style.background=newColor;
-}
-
-function activateBingoBall(bingoIDNum) {
-  let typeOfBingoBall = typeOfBingo(bingoIDNum);
-  let typeOfBingoBallLetter = typeOfBingoLetter(bingoIDNum);
-  let bingoID = bingoIDNum + "bingo";
-	if (saveData.drawnBingoBalls.indexOf(bingoIDNum) === -1) {
-		document.getElementById(bingoID).classList.add(typeOfBingoBall);
-    document.getElementById("bigBingoBall").classList.remove(document.getElementById("bigBingoBall").classList.item(1));
-    if (saveData.bingoStyle === "ball") {
-    document.getElementById("bigBingoBall").classList.add(typeOfBingoBall);
-    } else {
-      document.getElementById("bigBingoBall").classList.add("bigBingoBallVintage");
-    }
-    document.getElementById("bigBingoLetter").innerHTML=typeOfBingoBallLetter;
-    document.getElementById("bigBingoNumber").innerHTML=bingoIDNum;
-    document.getElementById("bigBingoNumber").style.fontSize=104+"px";
-    setTimeout(() => {
-      document.getElementById("bigBingoNumber").style.fontSize=95+"px";
-    },100);
-    saveData.drawnBingoBalls.push(bingoIDNum);
-    saveData.lastActionWasRemove = false;
-    save();
-	} else {
-		document.getElementById(bingoID).classList.remove(typeOfBingoBall);
-    document.getElementById("bigBingoBall").classList.remove(document.getElementById("bigBingoBall").classList.item(1));
-    document.getElementById("bigBingoLetter").innerHTML="&nbsp;";
-    document.getElementById("bigBingoNumber").innerHTML="&nbsp;";
-    saveData.drawnBingoBalls.splice(saveData.drawnBingoBalls.indexOf(bingoIDNum), 1);
-    saveData.lastActionWasRemove = true;
-    save();
-	}
-  updateBallStats();
+  document.getElementById("area").style.background = newColor;
+  document.getElementById("fader").style.background = newColor;
 }
 
 function typeOfBingo(num) {
   if (saveData.bingoStyle === "vintage") {
     return "bingoBallVintageActive";
   } else {
-    if (num <= 15){
+    if (num <= 15) {
       return "bingoBallBallActiveB";
     } else if (num <= 30) {
       return "bingoBallBallActiveI";
@@ -339,7 +307,7 @@ function typeOfBingo(num) {
 }
 
 function typeOfBingoLetter(num) {
-  if (num <= 15){
+  if (num <= 15) {
     return "B";
   } else if (num <= 30) {
     return "I";
@@ -352,35 +320,151 @@ function typeOfBingoLetter(num) {
   }
 }
 
-function loadBingoBall(bingoIDNum) {
-  let typeOfBingoBall = typeOfBingo(bingoIDNum);
-  let bingoID = bingoIDNum + "bingo";
-		document.getElementById(bingoID).classList.add(typeOfBingoBall);
-  if (saveData.drawnBingoBalls.indexOf(bingoIDNum) === saveData.drawnBingoBalls.length-1 && saveData.lastActionWasRemove === false) {
-    let typeOfBingoBallLetter = typeOfBingoLetter(bingoIDNum);
-    document.getElementById("bigBingoBall").classList.remove(document.getElementById("bigBingoBall").classList.item(1));
+function formatBallNumber(num) {
+  const letter = typeOfBingoLetter(num);
+  const formattedNum = num < 10 ? "0" + num : "" + num;
+  return `${letter}-${formattedNum}`;
+}
+
+/**
+ * Registro manual de balota al hacer clic sobre el número del tablero.
+ * PROTECCIÓN: Si el número ya fue registrado, un segundo clic NO hace nada.
+ */
+function activateBingoBall(bingoIDNum) {
+  if (saveData.drawnBingoBalls.indexOf(bingoIDNum) !== -1) {
+    return; // Ya registrado; no borrar accidentalmente
+  }
+
+  const typeOfBingoBall = typeOfBingo(bingoIDNum);
+  const typeOfBingoBallLetter = typeOfBingoLetter(bingoIDNum);
+  const bingoID = bingoIDNum + "bingo";
+  const ballEl = document.getElementById(bingoID);
+  if (ballEl) {
+    ballEl.classList.add(typeOfBingoBall);
+  }
+
+  const bigBall = document.getElementById("bigBingoBall");
+  bigBall.classList.remove(
+    "bingoBallBallActiveB",
+    "bingoBallBallActiveI",
+    "bingoBallBallActiveN",
+    "bingoBallBallActiveG",
+    "bingoBallBallActiveO",
+    "bigBingoBallVintage"
+  );
+  if (saveData.bingoStyle === "ball") {
+    bigBall.classList.add(typeOfBingoBall);
+  } else {
+    bigBall.classList.add("bigBingoBallVintage");
+  }
+
+  const bigLetter = document.getElementById("bigBingoLetter");
+  const bigNumber = document.getElementById("bigBingoNumber");
+  bigLetter.innerHTML = typeOfBingoBallLetter;
+  bigNumber.innerHTML = bingoIDNum;
+  bigNumber.style.fontSize = "104px";
+  setTimeout(() => {
+    bigNumber.style.fontSize = "95px";
+  }, 100);
+
+  saveData.drawnBingoBalls.push(bingoIDNum);
+  save();
+
+  updateBallStats();
+  updateUndoButton();
+  updateHistoryDisplay();
+}
+
+/**
+ * Deshace únicamente el último número registrado.
+ */
+function undoLastBall() {
+  if (!saveData.drawnBingoBalls || saveData.drawnBingoBalls.length === 0) {
+    return;
+  }
+
+  const lastNum = saveData.drawnBingoBalls.pop();
+  const bingoID = lastNum + "bingo";
+  const ballEl = document.getElementById(bingoID);
+  if (ballEl) {
+    ballEl.classList.remove(
+      "bingoBallBallActiveB",
+      "bingoBallBallActiveI",
+      "bingoBallBallActiveN",
+      "bingoBallBallActiveG",
+      "bingoBallBallActiveO",
+      "bingoBallVintageActive"
+    );
+  }
+
+  updateBigBingoBall();
+  save();
+
+  updateBallStats();
+  updateUndoButton();
+  updateHistoryDisplay();
+}
+
+/**
+ * Sincroniza la balota grande con el último número registrado en el historial.
+ */
+function updateBigBingoBall() {
+  const bigBall = document.getElementById("bigBingoBall");
+  const bigLetter = document.getElementById("bigBingoLetter");
+  const bigNumber = document.getElementById("bigBingoNumber");
+
+  bigBall.classList.remove(
+    "bingoBallBallActiveB",
+    "bingoBallBallActiveI",
+    "bingoBallBallActiveN",
+    "bingoBallBallActiveG",
+    "bingoBallBallActiveO",
+    "bigBingoBallVintage"
+  );
+
+  if (saveData.drawnBingoBalls.length > 0) {
+    const currentLast = saveData.drawnBingoBalls[saveData.drawnBingoBalls.length - 1];
+    const ballType = typeOfBingo(currentLast);
+    const letter = typeOfBingoLetter(currentLast);
+
     if (saveData.bingoStyle === "ball") {
-    document.getElementById("bigBingoBall").classList.add(typeOfBingoBall);
+      bigBall.classList.add(ballType);
     } else {
-      document.getElementById("bigBingoBall").classList.add("bigBingoBallVintage");
+      bigBall.classList.add("bigBingoBallVintage");
     }
-    document.getElementById("bigBingoLetter").innerHTML=typeOfBingoBallLetter;
-    document.getElementById("bigBingoNumber").innerHTML=bingoIDNum;
+    bigLetter.innerHTML = letter;
+    bigNumber.innerHTML = currentLast;
+  } else {
+    bigLetter.innerHTML = "&nbsp;";
+    bigNumber.innerHTML = "&nbsp;";
+  }
+}
+
+function loadBingoBall(bingoIDNum) {
+  const typeOfBingoBall = typeOfBingo(bingoIDNum);
+  const bingoID = bingoIDNum + "bingo";
+  const ballEl = document.getElementById(bingoID);
+  if (ballEl) {
+    ballEl.classList.add(typeOfBingoBall);
   }
 }
 
 function renderBingoStyle() {
   if (saveData.bingoStyle === "ball") {
-    for (let i=0;i<75;i+=1) {
-      document.getElementById(i+1 + "bingo").classList.remove(document.getElementById(i+1 + "bingo").classList.item(2));
-      document.getElementById(i+1 + "bingo").classList.remove(document.getElementById(i+1 + "bingo").classList.item(1));
-      document.getElementById(i+1 + "bingo").classList.add("bingoBallBall");
+    for (let i = 0; i < 75; i += 1) {
+      const el = document.getElementById(i + 1 + "bingo");
+      if (el) {
+        el.classList.remove("bingoBallVintage");
+        el.classList.add("bingoBallBall");
+      }
     }
   } else {
-    for (let i=0;i<75;i+=1) {
-      document.getElementById(i+1 + "bingo").classList.remove(document.getElementById(i+1 + "bingo").classList.item(2));
-      document.getElementById(i+1 + "bingo").classList.remove(document.getElementById(i+1 + "bingo").classList.item(1));
-      document.getElementById(i+1 + "bingo").classList.add("bingoBallVintage");
+    for (let i = 0; i < 75; i += 1) {
+      const el = document.getElementById(i + 1 + "bingo");
+      if (el) {
+        el.classList.remove("bingoBallBall");
+        el.classList.add("bingoBallVintage");
+      }
     }
   }
 }
@@ -389,256 +473,136 @@ function changeBingoStyle(theStyle) {
   saveData.bingoStyle = theStyle;
   save();
   renderBingoStyle();
-  for (let i=0;i<saveData.drawnBingoBalls.length;i+=1) {
+  for (let i = 0; i < saveData.drawnBingoBalls.length; i += 1) {
     loadBingoBall(saveData.drawnBingoBalls[i]);
   }
+  updateBigBingoBall();
   setUpSettings();
 }
 
-function getBallsRemaining() {
-  let numbersAvailable = [];
-  for (let i = 1; i<=15;i+=1) {
-    if (saveData.drawnBingoBalls.indexOf(i) === -1 && saveData.hiddenBingoLetters.indexOf("B") === -1) {
-      numbersAvailable.push(i);
-    }
-  }
-  for (let i = 16; i<=30;i+=1) {
-    if (saveData.drawnBingoBalls.indexOf(i) === -1 && saveData.hiddenBingoLetters.indexOf("I") === -1) {
-      numbersAvailable.push(i);
-    }
-  }
-  for (let i = 31; i<=45;i+=1) {
-    if (saveData.drawnBingoBalls.indexOf(i) === -1 && saveData.hiddenBingoLetters.indexOf("N") === -1) {
-      numbersAvailable.push(i);
-    }
-  }
-  for (let i = 46; i<=60;i+=1) {
-    if (saveData.drawnBingoBalls.indexOf(i) === -1 && saveData.hiddenBingoLetters.indexOf("G") === -1) {
-      numbersAvailable.push(i);
-    }
-  }
-  for (let i = 61; i<=75;i+=1) {
-    if (saveData.drawnBingoBalls.indexOf(i) === -1 && saveData.hiddenBingoLetters.indexOf("O") === -1) {
-      numbersAvailable.push(i);
-    }
-  }
-  return numbersAvailable;
-}
-
-function randomDraw() {
-  if (getBallsRemaining().length === 0) {
-    document.getElementById("drawBallDiv").style.transform = "rotate(15deg)";
-    setTimeout(() => {
-      document.getElementById("drawBallDiv").style.transform = "rotate(0deg)";
-    },100);
-  } else {
-    document.getElementById("drawBallDiv").style.transform = "scale(0.9)";
-    document.getElementById("drawBallDiv").style.opacity = 0.6;
-    setTimeout(() => {
-      document.getElementById("drawBallDiv").style.transform = "scale(1)";
-      document.getElementById("drawBallDiv").style.opacity = 1;
-    },100)
-    let theRandomNumber = getBallsRemaining()[cryptoRandom(0,getBallsRemaining().length-1)];
-    activateBingoBall(theRandomNumber);
-  }
-}
-
-function cryptoRandom (min, max) {
-    // Create an unsigned 32-bit array, required for crypto.getRandomValues
-    // Unsigned 32-bit numbers range from 0 to 4,294,967,295.
-    // The 1 means we're going to generate one number.
-    const cryptoRandomSet = new Uint32Array(1);
-    // Generate a crypto-random number from 0 to 4,294,967,295.
-    window.crypto.getRandomValues(cryptoRandomSet);
-    // Convert the generated number to math.random() format.
-    // aka a number from 0-1 (including 0, but not 1)
-    // To get this, we divide the generated number by 4,294,967,295, plus 1.
-    // We need to add 1 to the denominator so we'll never get 1 as the result.
-    let cryptoRandomNumber = cryptoRandomSet[0] / (4294967295 + 1);
-    // Return the random integer based on prior math.random() logic
-    return Math.floor(cryptoRandomNumber * (max - min + 1)) + min;
-}
-
 function updateBallStats() {
-  let ballsRemaining = getBallsRemaining().length;
-  document.getElementById("ballsDrawnNum").innerHTML = 75 - (saveData.hiddenBingoLetters.length*15) - ballsRemaining;
-  document.getElementById("ballsRemainingNum").innerHTML = ballsRemaining;
+  const drawn = saveData.drawnBingoBalls ? saveData.drawnBingoBalls.length : 0;
+  const remaining = 75 - drawn;
+  const drawnNumEl = document.getElementById("ballsDrawnNum");
+  const remainingNumEl = document.getElementById("ballsRemainingNum");
+  if (drawnNumEl) drawnNumEl.innerText = drawn;
+  if (remainingNumEl) remainingNumEl.innerText = remaining;
 }
 
-function hideBingo(bingoLetter, renderOrToggle) {
-  let bingoLetterClass;
-  let bingoBallsClass;
-  if (bingoLetter === "B") {
-    bingoLetterClass = "bingoB";
-    bingoBallsClass = "bingoBallsB";
+function updateUndoButton() {
+  const undoBtn = document.getElementById("undoButton");
+  if (!undoBtn) return;
+  if (!saveData.drawnBingoBalls || saveData.drawnBingoBalls.length === 0) {
+    undoBtn.classList.add("disabled");
+  } else {
+    undoBtn.classList.remove("disabled");
   }
-  else if (bingoLetter === "I") {
-    bingoLetterClass = "bingoI";
-    bingoBallsClass = "bingoBallsI";
-  }
-  else if (bingoLetter === "N") {
-    bingoLetterClass = "bingoN";
-    bingoBallsClass = "bingoBallsN";
-  }
-  else if (bingoLetter === "G") {
-    bingoLetterClass = "bingoG";
-    bingoBallsClass = "bingoBallsG";
-  }
-  else if (bingoLetter === "O") {
-    bingoLetterClass = "bingoO";
-    bingoBallsClass = "bingoBallsO";
-  }
+}
 
-  if (renderOrToggle === "toggle") {
-    if (saveData.hiddenBingoLetters.indexOf(bingoLetter) === -1) {
-      document.getElementById(bingoLetterClass).classList.add("bingoLetterGray");
-      document.getElementById(bingoBallsClass).style.display = "none";
-      saveData.hiddenBingoLetters.push(bingoLetter);
-      save();
-    } else {
-      document.getElementById(bingoLetterClass).classList.remove("bingoLetterGray");
-      document.getElementById(bingoBallsClass).style.display = "block";
-      saveData.hiddenBingoLetters.splice(saveData.hiddenBingoLetters.indexOf(bingoLetter), 1);
-      save();
-    }
-    updateBallStats();
+function updateHistoryDisplay() {
+  const container = document.getElementById("recentHistoryList");
+  if (!container) return;
+  if (!saveData.drawnBingoBalls || saveData.drawnBingoBalls.length === 0) {
+    container.innerHTML = `<span class="historyEmpty">Sin registros</span>`;
+    return;
   }
+  const last5 = saveData.drawnBingoBalls.slice(-5).reverse();
+  const html = last5
+    .map((num, idx) => {
+      const formatted = formatBallNumber(num);
+      const isLatest = idx === 0;
+      return `<span class="historyBall ${
+        isLatest ? "historyBallLatest" : ""
+      }">${formatted}</span>`;
+    })
+    .join('<span class="historySeparator"> · </span>');
 
-  else if (renderOrToggle === "render") {
-    if (saveData.hiddenBingoLetters.indexOf(bingoLetter) === -1) {
-      document.getElementById(bingoLetterClass).classList.remove("bingoLetterGray");
-      document.getElementById(bingoBallsClass).style.display = "block";
-    } else {
-      document.getElementById(bingoLetterClass).classList.add("bingoLetterGray");
-      document.getElementById(bingoBallsClass).style.display = "none";
-    }
-  }
-
-  else if (renderOrToggle === "reset") {
-    saveData.hiddenBingoLetters = [];
-    save();
-    const letters = ['B', 'I', 'N', 'G', 'O'];
-    for (let i = 0; i< letters.length; i+=1) {
-      hideBingo(letters[i], "render");
-    }
-  }
-
+  container.innerHTML = html;
 }
 
 function toggleBallsDrawnRemaining(renderOrToggle) {
   if (renderOrToggle === "toggle") {
-    if (saveData.ballsDrawnRemaining === "hidden") {
-      document.getElementById("ballsDrawnRemaining").style.visibility = "visible";
-      document.getElementById("ballsDrawn").style.display = "flex";
-      saveData.ballsDrawnRemaining = "drawn";
-      save();
-    } else if (saveData.ballsDrawnRemaining === "drawn") {
+    if (saveData.ballsDrawnRemaining === "drawn") {
       document.getElementById("ballsDrawn").style.display = "none";
       document.getElementById("ballsRemaining").style.display = "flex";
       saveData.ballsDrawnRemaining = "remaining";
       save();
     } else {
       document.getElementById("ballsRemaining").style.display = "none";
-      document.getElementById("ballsDrawnRemaining").style.visibility = "hidden";
-      saveData.ballsDrawnRemaining = "hidden";
+      document.getElementById("ballsDrawn").style.display = "flex";
+      saveData.ballsDrawnRemaining = "drawn";
       save();
     }
-  }
-  else if (renderOrToggle === "render") {
-    if (saveData.ballsDrawnRemaining === "hidden") {
-    } else if (saveData.ballsDrawnRemaining === "drawn") {
-      document.getElementById("ballsDrawnRemaining").style.visibility = "visible";
-      document.getElementById("ballsDrawn").style.display = "flex";
-    } else {
-      document.getElementById("ballsDrawnRemaining").style.visibility = "visible";
+  } else if (renderOrToggle === "render") {
+    document.getElementById("ballsDrawnRemaining").style.visibility = "visible";
+    if (saveData.ballsDrawnRemaining === "remaining") {
+      document.getElementById("ballsDrawn").style.display = "none";
       document.getElementById("ballsRemaining").style.display = "flex";
+    } else {
+      document.getElementById("ballsRemaining").style.display = "none";
+      document.getElementById("ballsDrawn").style.display = "flex";
+      saveData.ballsDrawnRemaining = "drawn";
     }
   }
 }
 
-function resetBoard() {
-  for (let i=0;i<75;i+=1) {
-    document.getElementById(i+1 + "bingo").classList.remove(document.getElementById(i+1 + "bingo").classList.item(2));
+/**
+ * Pide confirmación al usuario antes de reiniciar una partida.
+ */
+function confirmResetBoard() {
+  const confirmed = window.confirm(
+    "¿Seguro que deseas iniciar una nueva partida? Se borrarán todos los números registrados."
+  );
+  if (confirmed) {
+    resetBoard();
   }
-  document.getElementById("bigBingoBall").classList.remove(document.getElementById("bigBingoBall").classList.item(1));
-  document.getElementById("bigBingoLetter").innerHTML="&nbsp;";
-  document.getElementById("bigBingoNumber").innerHTML="&nbsp;";
+}
+
+function resetBoard() {
+  for (let i = 0; i < 75; i += 1) {
+    const ballEl = document.getElementById(i + 1 + "bingo");
+    if (ballEl) {
+      ballEl.classList.remove(
+        "bingoBallBallActiveB",
+        "bingoBallBallActiveI",
+        "bingoBallBallActiveN",
+        "bingoBallBallActiveG",
+        "bingoBallBallActiveO",
+        "bingoBallVintageActive"
+      );
+    }
+  }
+
+  saveData.drawnBingoBalls = [];
+  save();
+
+  updateBigBingoBall();
+
   const bingoBallsClass = document.querySelectorAll(".bingoBalls");
-  for (let i = 0; i < bingoBallsClass.length; i+=1) {
+  for (let i = 0; i < bingoBallsClass.length; i += 1) {
     bingoBallsClass[i].classList.add("notransition");
     bingoBallsClass[i].style.opacity = 0;
     setTimeout(() => {
       bingoBallsClass[i].classList.remove("notransition");
       bingoBallsClass[i].style.opacity = 1;
-    },100)
-  }
-  document.getElementById("blocker").classList.add("notransition");
-  document.getElementById("blocker").style.opacity = 0;
-
-  // Chrome has a Bingo letter rendering bug when resetting with the blocker enabled.
-  // Until Chrome fixes this bug, this browser-specific workaround is necessary.
-  // Safari also has this bug, but it is fixed in the latest Technology Preview.
-  const isChrome = !!window.chrome && !!window.chrome.webstore;
-  if (isChrome === true) {
-    const bingoLetterClass = document.querySelectorAll(".bingoLetter");
-    for (let i = 0; i < bingoLetterClass.length; i+=1) {
-      bingoLetterClass[i].classList.add("chromeBingoLetterFix");
-      setTimeout(() => {
-        bingoLetterClass[i].classList.remove("chromeBingoLetterFix");
-      },410)
-    }
+    }, 100);
   }
 
-  setTimeout(() => {
-    document.getElementById("blocker").classList.remove("notransition");
-    document.getElementById("blocker").style.opacity = 1;
-  },100)
-  saveData.drawnBingoBalls = [];
-  saveData.lastActionWasRemove = false;
-  save();
-  hideBingo("", "reset");
-  clearWinningPattern();
   updateBallStats();
-}
-
-function toggleBlocker() {
-	if (saveData.blockerEnabled === true) {
-    saveData.blockerEnabled = false;
-		document.getElementById("blocker").style.left = 1287 + "px";
-    document.getElementById("showBoard").style.display = "none";
-    document.getElementById("hideBoard").style.display = "flex";
-	} else {
-    saveData.blockerEnabled = true;
-		document.getElementById("blocker").style.left = 255 + "px";
-    document.getElementById("hideBoard").style.display = "none";
-    document.getElementById("showBoard").style.display = "flex";
-	}
-  save();
+  updateUndoButton();
+  updateHistoryDisplay();
 }
 
 function setUpMasterBoard() {
-  if (saveData.blockerEnabled === false) {
-    document.getElementById("showBoard").style.display = "none";
-    document.getElementById("hideBoard").style.display = "flex";
-    document.getElementById("blocker").style.left = 1287 + "px";
-  } else {
-    document.getElementById("hideBoard").style.display = "none";
-    document.getElementById("showBoard").style.display = "flex";
-    document.getElementById("blocker").style.left = 255 + "px";
-  }
   renderBingoStyle();
-  for (let i=0;i<saveData.drawnBingoBalls.length;i+=1) {
+  for (let i = 0; i < saveData.drawnBingoBalls.length; i += 1) {
     loadBingoBall(saveData.drawnBingoBalls[i]);
   }
-  for (let i=0;i<saveData.hiddenBingoLetters.length;i+=1) {
-    hideBingo(saveData.hiddenBingoLetters[i], "render");
-  }
-  for (let i=0;i<saveData.winningPattern.length;i+=1) {
-    document.getElementById(saveData.winningPattern[i] + "card").classList.add("bingoCardActive2");
-    document.getElementById(saveData.winningPattern[i] + "bigcard").classList.add("bingoCardActive");
-  }
+  updateBigBingoBall();
   toggleBallsDrawnRemaining("render");
   updateBallStats();
+  updateUndoButton();
+  updateHistoryDisplay();
 }
 
 function setUpSettings() {
@@ -671,172 +635,4 @@ function changeBackgroundColor(theColor) {
   saveData.themeColor = theColor;
   save();
   setUpSettings();
-}
-
-function toggleWinningPattern(theNumber) {
-  let bingoID = theNumber + "bigcard";
-  let bingoID2 = theNumber + "card";
-  if (saveData.winningPattern.indexOf(theNumber) === -1) {
-    document.getElementById(bingoID).classList.add("bingoCardActive");
-    document.getElementById(bingoID2).classList.add("bingoCardActive2");
-    saveData.winningPattern.push(theNumber);
-  } else {
-    saveData.winningPattern.splice(saveData.winningPattern.indexOf(theNumber), 1);
-    document.getElementById(bingoID).classList.remove("bingoCardActive");
-    document.getElementById(bingoID2).classList.remove("bingoCardActive2");
-  }
-  save();
-}
-
-function winningPatternFromName() {
-  clearWinningPattern();
-  for (let i = 0; i < arguments.length; i+=1) {
-    toggleWinningPattern(arguments[i]);
-  }
-}
-
-function clearWinningPattern() {
-  for (let i=0;i<saveData.winningPattern.length;i+=1) {
-    document.getElementById(saveData.winningPattern[i] + "card").classList.remove("bingoCardActive2");
-    document.getElementById(saveData.winningPattern[i] + "bigcard").classList.remove("bingoCardActive");
-  }
-  saveData.winningPattern = [];
-  save();
-}
-
-function hideBingoLettersBasedOnWinningPattern() {
-  let bExists = false;
-  let iExists = false;
-  let nExists = false;
-  let gExists = false;
-  let oExists = false;
-  if (saveData.winningPattern.length > 0) {
-    for (let i=0;i<saveData.winningPattern.length;i+=1) {
-      if (saveData.winningPattern[i] <=5) {
-        bExists = true;
-      } else if (saveData.winningPattern[i] <=10) {
-        iExists = true;
-      } else if (saveData.winningPattern[i] <=15) {
-        nExists = true;
-      } else if (saveData.winningPattern[i] <=20) {
-        gExists = true;
-      } else if (saveData.winningPattern[i] <=25) {
-        oExists = true;
-      }
-    }
-    hideBingo("", "reset");
-    if (bExists === false) {
-      hideBingo('B', 'toggle');
-    }
-    if (iExists === false) {
-      hideBingo('I', 'toggle');
-    }
-    if (nExists === false) {
-      hideBingo('N', 'toggle');
-    }
-    if (gExists === false) {
-      hideBingo('G', 'toggle');
-    }
-    if (oExists === false) {
-      hideBingo('O', 'toggle');
-    }
-  }
-}
-
-function navHelp(sectionName) {
-  document.getElementById("howToUseBasics").style.display="none";
-  document.getElementById("howToUseBasicsHeader").classList.remove("boldHelp");
-  document.getElementById("howToUseBasics2").style.display="none";
-  document.getElementById("howToUseBasics2Header").classList.remove("boldHelp");
-  document.getElementById("howToUseTipsTricks").style.display="none";
-  document.getElementById("howToUseTipsTricksHeader").classList.remove("boldHelp");
-  document.getElementById("howToUseThanks").style.display="none";
-  document.getElementById("howToUseThanksHeader").classList.remove("boldHelp");
-
-  if (sectionName === "Basics") {
-    document.getElementById("howToUseBasics").style.display="flex";
-    document.getElementById("howToUseBasicsHeader").classList.add("boldHelp");
-    document.getElementById("helpNavLine").style.marginLeft = 0 + "px";
-  } else if (sectionName === "Basics 2") {
-    document.getElementById("howToUseBasics2").style.display="flex";
-    document.getElementById("howToUseBasics2Header").classList.add("boldHelp");
-    document.getElementById("helpNavLine").style.marginLeft = 180 + "px";
-  } else if (sectionName === "Tips & Tricks") {
-    document.getElementById("howToUseTipsTricks").style.display="flex";
-    document.getElementById("howToUseTipsTricksHeader").classList.add("boldHelp");
-    document.getElementById("helpNavLine").style.marginLeft = 360 + "px";
-  } else if (sectionName === "Thank You") {
-    document.getElementById("howToUseThanks").style.display="flex";
-    document.getElementById("howToUseThanksHeader").classList.add("boldHelp");
-    document.getElementById("helpNavLine").style.marginLeft = 540 + "px";
-  }
-}
-
-function keyboardNavHowToUse(leftOrRight) {
-  let currentSpot;
-  if (document.getElementById("howToUseBasics").style.display === "flex") {
-    currentSpot = "Basics";
-  } else if (document.getElementById("howToUseBasics2").style.display === "flex") {
-    currentSpot = "Basics 2";
-  } else if (document.getElementById("howToUseTipsTricks").style.display === "flex") {
-    currentSpot = "Tips & Tricks";
-  } else {
-    currentSpot = "Thank You";
-  }
-  if (currentSpot === "Basics") {
-    if (leftOrRight === 1) {
-      navHelp("Basics 2");
-    }
-  } else if (currentSpot === "Basics 2") {
-    if (leftOrRight === 0) {
-      navHelp("Basics");
-    } else {
-      navHelp("Tips & Tricks");
-    }
-  } else if (currentSpot === "Tips & Tricks") {
-    if (leftOrRight === 0) {
-      navHelp("Basics 2");
-    } else {
-      navHelp("Thank You");
-    }
-  } else if (currentSpot === "Thank You") {
-    if (leftOrRight === 0) {
-      navHelp("Tips & Tricks");
-    }
-  }
-}
-
-function creditsHelp(sectionName) {
-  document.getElementById("creditsAbout").style.display="none";
-  document.getElementById("creditsAboutHeader").classList.remove("boldHelp");
-  document.getElementById("creditsCredits").style.display="none";
-  document.getElementById("creditsCreditsHeader").classList.remove("boldHelp");
-
-  if (sectionName === "About") {
-    document.getElementById("creditsAbout").style.display="flex";
-    document.getElementById("creditsAboutHeader").classList.add("boldHelp");
-    document.getElementById("creditsNavLine").style.marginLeft = 0 + "px";
-  } else if (sectionName === "Credits") {
-    document.getElementById("creditsCredits").style.display="flex";
-    document.getElementById("creditsCreditsHeader").classList.add("boldHelp");
-    document.getElementById("creditsNavLine").style.marginLeft = 180 + "px";
-  }
-}
-
-function keyboardNavCredits(leftOrRight) {
-  let currentSpot;
-  if (document.getElementById("creditsAbout").style.display === "flex") {
-    currentSpot = "About";
-  } else {
-    currentSpot = "Credits";
-  }
-  if (currentSpot === "About") {
-    if (leftOrRight === 1) {
-      creditsHelp("Credits");
-    }
-  } else if (currentSpot === "Credits") {
-    if (leftOrRight === 0) {
-      creditsHelp("About");
-    }
-  }
 }
