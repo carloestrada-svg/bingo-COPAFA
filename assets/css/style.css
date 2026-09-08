@@ -571,10 +571,38 @@ margin:0.5em 0;
   transform: scale(0.98);
 }
 
+.quickPresetsBar {
+  width: 242px;
+  margin: 6px auto 0 auto;
+  display: flex;
+  gap: 4px;
+}
+
+.quickPresetBtn {
+  flex: 1;
+  height: 20px;
+  padding: 0;
+  background-color: #e5ebf4;
+  color: #1e3a66;
+  border: 1px solid #9bb5db;
+  border-radius: 4px;
+  font-family: arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quickPresetBtn:hover {
+  background-color: #2b579a;
+  color: #ffffff;
+  border-color: #1e3a66;
+}
+
 .gameDataPanel {
   width: 242px;
-  margin: 8px auto 0 auto;
-  padding: 7px 9px;
+  margin: 6px auto 0 auto;
+  padding: 6px 8px;
   background: rgba(0, 0, 0, 0.07);
   border: 1.5px solid rgba(0, 0, 0, 0.2);
   border-radius: 8px;
@@ -582,23 +610,23 @@ margin:0.5em 0;
 }
 
 .gameDataHeader {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   color: #333;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   text-align: center;
   text-transform: uppercase;
 }
 
 .gameDataField {
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   display: flex;
   flex-direction: column;
 }
 
 .gameDataField label {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 700;
   color: #444;
   margin-bottom: 1px;
@@ -607,8 +635,8 @@ margin:0.5em 0;
 .gameDataField input {
   font-family: arial, sans-serif;
   font-size: 11px;
-  padding: 2px 5px;
-  height: 22px;
+  padding: 1px 5px;
+  height: 20px;
   border: 1px solid rgba(0, 0, 0, 0.3);
   border-radius: 4px;
   background: #ffffff;
@@ -622,13 +650,104 @@ margin:0.5em 0;
   box-shadow: 0 0 3px rgba(43, 87, 154, 0.4);
 }
 
+.patternSelectRow {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.patternSelectRow select {
+  flex: 1;
+  height: 20px;
+  font-family: arial, sans-serif;
+  font-size: 10.5px;
+  padding: 0 3px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  background: #ffffff;
+  color: #111;
+  outline: none;
+}
+
+.editPatternMiniBtn {
+  height: 20px;
+  padding: 0 6px;
+  font-family: arial, sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  background-color: #5c6b73;
+  color: #ffffff;
+  border: 1px solid #3d474d;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.editPatternMiniBtn:hover {
+  background-color: #3d474d;
+}
+
+.miniPatternWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px dashed rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+  padding: 3px 6px;
+  margin: 3px 0;
+  cursor: pointer;
+}
+
+.miniPatternWrapper:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: #2b579a;
+}
+
+.miniBingoCard {
+  display: grid;
+  grid-template-columns: repeat(5, 8px);
+  grid-template-rows: 9px repeat(5, 8px);
+  gap: 1px;
+  background-color: #888;
+  padding: 1px;
+  border-radius: 2px;
+}
+
+.miniCardHeader {
+  background-color: #e1cdac;
+  color: #ce181e;
+  font-size: 7px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 9px;
+  font-family: arya, sans-serif;
+}
+
+.miniCardCell {
+  background-color: #f2f2f2;
+  border-radius: 1px;
+}
+
+.miniCardCell.miniCardActive {
+  background-color: #e83b29;
+}
+
+.miniPatternLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #1e3a66;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .saveGameBtn {
   width: 100%;
-  height: 23px;
-  margin-top: 3px;
+  height: 22px;
+  margin-top: 2px;
   background-color: #4a77b2;
   color: #ffffff;
-  font-size: 10px;
+  font-size: 9.5px;
   letter-spacing: 0.6px;
   border: 1px solid #33598d;
 }

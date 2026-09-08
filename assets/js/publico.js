@@ -1,11 +1,12 @@
 /**
  * COPAFA Bingo - Lógica Exclusiva de la Vista Pública / Proyector
- * Fase 2A: Pantalla pasiva de alta visibilidad para público.
+ * Versión 3 (Sprint Final): Modalidades de Juego, Patrón 5x5, Datos de Evento Reutilizables.
  *
  * Características:
  * - 100% Solo Lectura (cero manipulación de juego).
- * - Sincronizada en tiempo real mediante CopafaSync.
- * - Auto-escalado responsive 16:9 (1920x1080 nativo).
+ * - Sincronizada en tiempo real mediante CopafaSync (<5ms).
+ * - Auto-escalado responsive 16:9 proporcional (1920x1080 nativo).
+ * - Visualización destacada de modalidad con tarjeta miniatura 5x5.
  * - Libre de dependencias externas.
  */
 
@@ -15,8 +16,10 @@
   const BASE_WIDTH = 1280;
   const BASE_HEIGHT = 720;
   let isFullScreen = false;
+  let patternGridInitialized = false;
 
   function initPublicView() {
+    initPatternGrid();
     resize();
     window.addEventListener("resize", resize);
     document.addEventListener("fullscreenchange", onFullScreenChange, false);
@@ -36,7 +39,7 @@
       }
     });
 
-    // Suscribirse a los cambios en el motor de sincronización
+    // Suscribirse a los cambios en el motor de sincronización CopafaSync
     if (window.CopafaSync) {
       window.CopafaSync.subscribe(function (state) {
         renderState(state);
@@ -70,6 +73,7 @@
     if (!state) return;
 
     renderGameInfo(state);
+    renderPattern(state);
     renderBoard(state.drawnBingoBalls || []);
     renderBigBall(state.drawnBingoBalls || []);
     renderCounter(state.drawnBingoBalls || []);
@@ -77,32 +81,140 @@
   }
 
   /**
-   * Renderiza la información de la partida, premio y patrocinador
+   * Renderiza la información institucional, partida, premio y patrocinador
    */
   function renderGameInfo(state) {
+    const eventEl = document.getElementById("publicEventTitle");
+    const dividerEl = document.getElementById("publicBrandDivider");
+    const gameCard = document.getElementById("publicGameCard");
     const titleEl = document.getElementById("publicGameTitle");
     const prizeEl = document.getElementById("publicPrizeTitle");
     const sponsorEl = document.getElementById("publicSponsor");
 
+    // Título de Evento (dinámico, sin fallback a 2026)
+    if (eventEl) {
+      if (state.eventTitle && state.eventTitle.trim() !== "") {
+        eventEl.innerText = state.eventTitle.trim();
+        if (dividerEl) dividerEl.classList.remove("hidden");
+      } else {
+        eventEl.innerText = "";
+        if (dividerEl) dividerEl.classList.add("hidden");
+      }
+    }
+
+    // Tarjeta de Partida y Premio (se oculta elegantemente si no hay datos)
+    const hasGame = !!(state.gameTitle && state.gameTitle.trim() !== "");
+    const hasPrize = !!(state.prizeTitle && state.prizeTitle.trim() !== "");
+    const hasSponsor = !!(state.sponsor && state.sponsor.trim() !== "");
+
+    if (gameCard) {
+      if (!hasGame && !hasPrize && !hasSponsor) {
+        gameCard.classList.add("hidden");
+      } else {
+        gameCard.classList.remove("hidden");
+      }
+    }
+
     if (titleEl) {
-      titleEl.innerText = state.gameTitle && state.gameTitle.trim() !== ""
-        ? state.gameTitle
-        : "PARTIDA EN CURSO";
+      if (hasGame) {
+        titleEl.innerText = state.gameTitle.trim();
+        titleEl.classList.remove("hidden");
+      } else {
+        titleEl.innerText = "";
+        titleEl.classList.add("hidden");
+      }
     }
 
     if (prizeEl) {
-      prizeEl.innerText = state.prizeTitle && state.prizeTitle.trim() !== ""
-        ? state.prizeTitle
-        : "PREMIO EN JUEGO";
+      if (hasPrize) {
+        const prizeText = state.prizeTitle.trim();
+        prizeEl.innerText = !/^premio/i.test(prizeText) ? "PREMIO: " + prizeText : prizeText;
+        prizeEl.classList.remove("hidden");
+      } else {
+        prizeEl.innerText = "";
+        prizeEl.classList.add("hidden");
+      }
     }
 
     if (sponsorEl) {
-      if (state.sponsor && state.sponsor.trim() !== "") {
+      if (hasSponsor) {
         sponsorEl.innerText = "Auspiciado por: " + state.sponsor.trim();
         sponsorEl.classList.remove("hidden");
       } else {
         sponsorEl.innerText = "";
         sponsorEl.classList.add("hidden");
+      }
+    }
+  }
+
+  /**
+   * Inicializa la estructura del patrón 5x5 en la pantalla pública
+   */
+  function initPatternGrid() {
+    const container = document.getElementById("publicPatternGrid");
+    if (!container || patternGridInitialized) return;
+    container.innerHTML = "";
+
+    // 5 encabezados B-I-N-G-O
+    const headers = ["B", "I", "N", "G", "O"];
+    headers.forEach(function (letter) {
+      const h = document.createElement("div");
+      h.className = "pubPatternHeaderCell";
+      h.innerText = letter;
+      container.appendChild(h);
+    });
+
+    // 25 celdas organizadas por filas para visualización CSS Grid:
+    // Fila 1: B1, I6, N11, G16, O21
+    // Fila 2: B2, I7, N12, G17, O22
+    // etc.
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 5; c++) {
+        const cellNum = c * 5 + r + 1;
+        const cell = document.createElement("div");
+        cell.className = "pubPatternCell";
+        cell.id = "pubPatternCell" + cellNum;
+        container.appendChild(cell);
+      }
+    }
+    patternGridInitialized = true;
+  }
+
+  /**
+   * Renderiza el patrón 5x5 y nombre de modalidad
+   */
+  function renderPattern(state) {
+    const patternBox = document.getElementById("publicPatternBox");
+    const pType = state.patternType;
+    const hasPattern = pType && pType !== "none" && state.patternName && state.patternName.trim() !== "";
+
+    if (patternBox) {
+      if (!hasPattern) {
+        patternBox.classList.add("hidden");
+        return; // Ocultar bloque si no hay modalidad configurada
+      } else {
+        patternBox.classList.remove("hidden");
+      }
+    }
+
+    if (!patternGridInitialized) {
+      initPatternGrid();
+    }
+
+    const nameEl = document.getElementById("publicPatternName");
+    if (nameEl) {
+      nameEl.innerText = state.patternName.toUpperCase();
+    }
+
+    const pattern = state.customPattern || [];
+    for (let i = 1; i <= 25; i++) {
+      const cellEl = document.getElementById("pubPatternCell" + i);
+      if (cellEl) {
+        if (pattern.indexOf(i) !== -1) {
+          cellEl.className = "pubPatternCell pubPatternCellActive";
+        } else {
+          cellEl.className = "pubPatternCell";
+        }
       }
     }
   }
@@ -151,39 +263,42 @@
   }
 
   /**
-   * Muestra el total de bolillas registradas
+   * Contador de bolillas registradas
    */
   function renderCounter(drawnBalls) {
-    const numEl = document.getElementById("publicCounterNum");
-    if (numEl) {
-      numEl.innerText = drawnBalls ? drawnBalls.length : 0;
+    const counterEl = document.getElementById("publicCounterNum");
+    if (counterEl) {
+      counterEl.innerText = drawnBalls ? drawnBalls.length : 0;
     }
   }
 
   /**
-   * Muestra la franja de los últimos 5 números registrados
+   * Muestra los últimos 5 números con formato de bolilla
    */
   function renderRecentHistory(drawnBalls) {
-    const listEl = document.getElementById("publicHistoryList");
-    if (!listEl) return;
+    const container = document.getElementById("publicHistoryList");
+    if (!container) return;
 
     if (!drawnBalls || drawnBalls.length === 0) {
-      listEl.innerHTML = '<span class="publicHistoryEmpty">Sin números registrados</span>';
+      container.innerHTML = '<span class="publicHistoryEmpty">Sin números registrados</span>';
       return;
     }
 
     const last5 = drawnBalls.slice(-5).reverse();
     const html = last5
       .map(function (num, idx) {
-        const formatted = window.CopafaSync
-          ? window.CopafaSync.formatBallNumber(num)
-          : num;
+        const letter = window.CopafaSync ? window.CopafaSync.typeOfBingoLetter(num) : getLetter(num);
+        const formatted = window.CopafaSync ? window.CopafaSync.formatBallNumber(num) : (letter + "-" + (num < 10 ? "0" + num : num));
         const isLatest = idx === 0;
-        return '<span class="pubHistBall ' + (isLatest ? "pubHistBallLatest" : "") + '">' + formatted + '</span>';
+        return (
+          '<span class="publicHistoryBall ball' + letter + (isLatest ? " isLatest" : "") + '">' +
+          formatted +
+          "</span>"
+        );
       })
-      .join('<span class="pubHistSep"> · </span>');
+      .join('<span class="publicHistorySep">·</span>');
 
-    listEl.innerHTML = html;
+    container.innerHTML = html;
   }
 
   function getLetter(num) {
@@ -195,27 +310,32 @@
   }
 
   function toggleFullScreen() {
-    const doc = document.documentElement;
-    if (!isFullScreen) {
-      if (doc.requestFullscreen) {
-        doc.requestFullscreen();
-      } else if (doc.webkitRequestFullscreen) {
-        doc.webkitRequestFullscreen();
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
       }
-      isFullScreen = true;
     } else {
       if (document.exitFullscreen) {
         document.exitFullscreen();
       } else if (document.webkitExitFullscreen) {
         document.webkitExitFullscreen();
       }
-      isFullScreen = false;
     }
   }
 
   function onFullScreenChange() {
     const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-    isFullScreen = !!fsEl;
+    isFullScreen = fsEl !== null && fsEl !== undefined;
+    const fsBtn = document.getElementById("publicFullscreenBtn");
+    if (fsBtn) {
+      if (isFullScreen) {
+        fsBtn.classList.add("isFullScreen");
+      } else {
+        fsBtn.classList.remove("isFullScreen");
+      }
+    }
   }
 
   // Inicializar al cargar el DOM

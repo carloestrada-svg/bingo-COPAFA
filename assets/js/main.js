@@ -3,8 +3,8 @@
  * Basado en Bingo Master Board v3.0.1 (c) 2011-2018 Timothy Hsu (Games by Tim)
  * Distribuido bajo la Licencia MIT (ver archivo LICENSE)
  *
- * Fase 2A: Integración con CopafaSync para persistencia unificada y sincronización
- * en tiempo real con la Vista Pública / Proyector (publico.html).
+ * Versión 3 (Sprint Final): Modalidades de Juego, Patrón Ganador 5x5, Datos de Evento Reutilizables.
+ * Sincronización en tiempo real con la Vista Pública / Proyector (publico.html).
  */
 
 const fixedWidth = document.getElementById("area").offsetWidth;
@@ -13,18 +13,26 @@ let isFullScreen = false;
 let loadedMasterBoard = false;
 let keyPressed = false;
 
-// Estado enlazado al motor de sincronización
+// Estado temporal para edición de modalidad/patrón en slide
+let tempCustomPattern = [];
+let tempPatternType = "none";
+
+// Estado enlazado al motor de sincronización CopafaSync
 let saveData = window.CopafaSync
   ? window.CopafaSync.getState()
   : {
-      version: 2,
+      version: 3,
+      eventTitle: "",
+      gameTitle: "",
+      prizeTitle: "",
+      sponsor: "",
+      patternType: "none",
+      patternName: "Sin modalidad",
+      customPattern: [],
       drawnBingoBalls: [],
       themeColor: "classic",
       bingoStyle: "ball",
       ballsDrawnRemaining: "drawn",
-      gameTitle: "",
-      prizeTitle: "",
-      sponsor: "",
       firstRun: 0
     };
 
@@ -38,6 +46,7 @@ if (window.CopafaSync) {
     updateUndoButton();
     updateHistoryDisplay();
     populateGameDataUI(state);
+    renderMiniPatternCard();
   });
 }
 
@@ -53,6 +62,9 @@ function init() {
       activateBingoBall(i + 1);
     });
   }
+
+  // Inicializar celdas del mini patrón en el panel del operador
+  initMiniPatternGrid();
 
   let param = location.search;
   if (param === "?masterboard") {
@@ -139,9 +151,9 @@ function show(elementName, display) {
       loadedMasterBoard = true;
     }
     document.onkeydown = function (e) {
-      // Si el operador está escribiendo en los campos de partida/premio, no interceptar teclado
+      // Si el operador está escribiendo en campos de formulario, no interceptar atajos
       const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
-      if (activeTag === "input" || activeTag === "textarea") {
+      if (activeTag === "input" || activeTag === "textarea" || activeTag === "select") {
         return;
       }
 
@@ -159,17 +171,21 @@ function show(elementName, display) {
           // 'u' -> Deshacer último
           e.preventDefault();
           undoLastBall();
+        } else if (e.keyCode === 87) {
+          // 'w' -> Modalidad / Winning Pattern
+          e.preventDefault();
+          openWinningPatternSlide();
         } else if (e.keyCode === 84) {
           // 't' -> Themes
           e.preventDefault();
           hide("masterBoardSlide");
           show("settingsSlide", "grid");
         } else if (e.keyCode === 86) {
-          // 'v' -> Alternar balotas jugadas / restantes
+          // 'v' -> Toggle bolas restantes / sorteadas
           e.preventDefault();
           toggleBallsDrawnRemaining("toggle");
         } else if (e.keyCode === 72) {
-          // 'h' -> Home / Título
+          // 'h' -> Ir al inicio
           e.preventDefault();
           hide("masterBoardSlide");
           show("titleSlide");
@@ -181,16 +197,25 @@ function show(elementName, display) {
       }
     };
   } else if (elementName === "settingsSlide") {
-    setUpSettings();
+    setUpSettings(saveData.themeColor);
     document.onkeydown = function (e) {
       if (!keyPressed) {
         keyPressed = true;
         if (e.keyCode === 84 || e.keyCode === 13) {
-          e.preventDefault();
           hide("settingsSlide");
           show("masterBoardSlide", "grid");
         } else if (e.keyCode === 70) {
-          e.preventDefault();
+          toggleFullScreen();
+        }
+      }
+    };
+  } else if (elementName === "winningPatternSlide") {
+    document.onkeydown = function (e) {
+      if (!keyPressed) {
+        keyPressed = true;
+        if (e.keyCode === 87 || e.keyCode === 13) {
+          closeWinningPatternSlide();
+        } else if (e.keyCode === 70) {
           toggleFullScreen();
         }
       }
@@ -200,11 +225,9 @@ function show(elementName, display) {
       if (!keyPressed) {
         keyPressed = true;
         if (e.keyCode === 13) {
-          e.preventDefault();
           hide("titleSlide");
           show("masterBoardSlide", "grid");
         } else if (e.keyCode === 70) {
-          e.preventDefault();
           toggleFullScreen();
         }
       }
@@ -218,35 +241,27 @@ function show(elementName, display) {
 }
 
 function hide(elementName) {
-  const targetEl = document.getElementById(elementName);
-  if (targetEl) {
-    targetEl.style.display = "none";
-  }
+  document.getElementById(elementName).style.display = "none";
   if (elementName === "masterBoardSlide") {
-    changeBG();
     document.getElementById("fullScreenToggle").classList.remove("fullScreenToggleSmall");
     document.getElementById("homeButton").style.display = "none";
+    document.getElementById("area").style.background = "#fff";
   }
 }
 
-function toggleFullScreen() {
-  const canvas = document.body;
-  if (isFullScreen === false) {
-    if (canvas.requestFullscreen) {
-      canvas.requestFullscreen();
-    } else if (canvas.webkitRequestFullscreen) {
-      canvas.webkitRequestFullscreen();
-    }
-    isFullScreen = true;
-  } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    }
-    isFullScreen = false;
+function changeBG(theColor) {
+  const area = document.getElementById("area");
+  if (theColor === "classic") {
+    area.style.background = "#eae9d2";
+  } else if (theColor === "red") {
+    area.style.background = "#ffd3cc";
+  } else if (theColor === "green") {
+    area.style.background = "#cae3b5";
+  } else if (theColor === "blue") {
+    area.style.background = "#d3e0ff";
+  } else if (theColor === "purple") {
+    area.style.background = "#ebceea";
   }
-  changeFullScreenImg();
 }
 
 function changeFullScreenImg() {
@@ -259,84 +274,51 @@ function changeFullScreenImg() {
   }
 }
 
-function changeBG(color) {
-  let newColor;
-  if (color === "classic") {
-    newColor = "#d1cc85";
-  } else if (color === "red") {
-    newColor = "rgb(253, 166, 166)";
-  } else if (color === "green") {
-    newColor = "rgb(150, 206, 129)";
-  } else if (color === "blue") {
-    newColor = "rgb(139, 199, 226)";
-  } else if (color === "purple") {
-    newColor = "rgb(189, 176, 216)";
+function toggleFullScreen() {
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+    } else if (document.documentElement.webkitRequestFullscreen) {
+      document.documentElement.webkitRequestFullscreen();
+    }
   } else {
-    newColor = "radial-gradient(#f7eaab, #bfbb73)";
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    }
   }
-  document.getElementById("area").style.background = newColor;
-  document.getElementById("fader").style.background = newColor;
-}
-
-function typeOfBingo(num) {
-  if (window.CopafaSync) {
-    return window.CopafaSync.typeOfBingo(num, saveData.bingoStyle);
-  }
-  if (saveData.bingoStyle === "vintage") {
-    return "bingoBallVintageActive";
-  }
-  if (num <= 15) return "bingoBallBallActiveB";
-  if (num <= 30) return "bingoBallBallActiveI";
-  if (num <= 45) return "bingoBallBallActiveN";
-  if (num <= 60) return "bingoBallBallActiveG";
-  return "bingoBallBallActiveO";
-}
-
-function typeOfBingoLetter(num) {
-  if (window.CopafaSync) {
-    return window.CopafaSync.typeOfBingoLetter(num);
-  }
-  if (num <= 15) return "B";
-  if (num <= 30) return "I";
-  if (num <= 45) return "N";
-  if (num <= 60) return "G";
-  return "O";
-}
-
-function formatBallNumber(num) {
-  if (window.CopafaSync) {
-    return window.CopafaSync.formatBallNumber(num);
-  }
-  const letter = typeOfBingoLetter(num);
-  const formattedNum = num < 10 ? "0" + num : "" + num;
-  return `${letter}-${formattedNum}`;
 }
 
 /**
- * Registro manual de balota al hacer clic sobre el número del tablero.
- * PROTECCIÓN: Si el número ya fue registrado, un segundo clic NO hace nada.
+ * Registro manual de bolilla con protección contra doble clic
  */
-function activateBingoBall(bingoIDNum) {
-  if (window.CopafaSync) {
-    window.CopafaSync.addBall(bingoIDNum);
+function activateBingoBall(theNumber) {
+  if (!window.CopafaSync) return;
+  const added = window.CopafaSync.addBall(theNumber);
+  if (!added) {
+    // Ya estaba registrada: no alterar nada
+    return;
   }
 }
 
 /**
- * Deshace únicamente el último número registrado.
+ * Deshace únicamente la última bolilla registrada
  */
 function undoLastBall() {
-  if (window.CopafaSync) {
-    window.CopafaSync.undoLastBall();
-  }
+  if (!window.CopafaSync) return;
+  window.CopafaSync.undoLastBall();
 }
 
 /**
- * Pide confirmación al usuario antes de reiniciar una partida.
+ * Reset con diálogo de confirmación.
+ * Al aceptar, limpia las balotas pero conserva evento, partida, premio, modalidad y patrocinador.
  */
 function confirmResetBoard() {
   const confirmed = window.confirm(
-    "¿Seguro que deseas iniciar una nueva partida? Se borrarán todos los números registrados."
+    "¿Está seguro de reiniciar el tablero para una nueva partida?\n\n" +
+    "• Se limpiarán las bolillas registradas y el historial.\n" +
+    "• Se conservarán los datos de Evento, Partida, Premio y Modalidad."
   );
   if (confirmed) {
     if (window.CopafaSync) {
@@ -345,29 +327,228 @@ function confirmResetBoard() {
   }
 }
 
+/* ==========================================================================
+   MODALIDADES Y PATRÓN GANADOR 5x5 (Reutilizando Winning Pattern de TimTree)
+   ========================================================================== */
+
 /**
- * Guarda los datos de la partida ingresados por el operador
+ * Inicializa la mini cuadrícula 5x5 en el panel del operador
  */
-function saveGameDataFromUI() {
-  const gameTitleInput = document.getElementById("inputGameTitle");
-  const prizeTitleInput = document.getElementById("inputPrizeTitle");
-  const sponsorInput = document.getElementById("inputSponsor");
-  const btn = document.getElementById("saveGameDataBtn");
+function initMiniPatternGrid() {
+  const container = document.getElementById("operatorMiniCard");
+  if (!container) return;
+  container.innerHTML = "";
 
-  const gameTitle = gameTitleInput ? gameTitleInput.value : "";
-  const prizeTitle = prizeTitleInput ? prizeTitleInput.value : "";
-  const sponsor = sponsorInput ? sponsorInput.value : "";
+  // Cabecera B-I-N-G-O
+  const letters = ["B", "I", "N", "G", "O"];
+  letters.forEach(l => {
+    const h = document.createElement("div");
+    h.className = "miniCardHeader";
+    h.innerText = l;
+    container.appendChild(h);
+  });
 
-  if (window.CopafaSync) {
-    window.CopafaSync.setGameInfo(gameTitle, prizeTitle, sponsor);
+  // 25 celdas ordenadas por filas para renderizado CSS grid
+  // Fila 1: B1, I6, N11, G16, O21
+  // Fila 2: B2, I7, N12, G17, O22
+  // etc.
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      const cellNum = c * 5 + r + 1;
+      const cell = document.createElement("div");
+      cell.className = "miniCardCell";
+      cell.id = "miniCell" + cellNum;
+      container.appendChild(cell);
+    }
+  }
+  renderMiniPatternCard();
+}
+
+/**
+ * Actualiza la visualización de la mini tarjeta 5x5 en el operador
+ */
+function renderMiniPatternCard() {
+  const pattern = saveData.customPattern || [];
+  for (let i = 1; i <= 25; i++) {
+    const el = document.getElementById("miniCell" + i);
+    if (el) {
+      if (pattern.indexOf(i) !== -1) {
+        el.classList.add("miniCardActive");
+      } else {
+        el.classList.remove("miniCardActive");
+      }
+    }
   }
 
+  const labelEl = document.getElementById("operatorPatternLabel");
+  if (labelEl) {
+    labelEl.innerText = saveData.patternName || "Sin modalidad";
+  }
+
+  const selectEl = document.getElementById("selectPattern");
+  if (selectEl && document.activeElement !== selectEl) {
+    selectEl.value = saveData.patternType || "none";
+  }
+}
+
+/**
+ * Abre el slide interactivo para configurar la modalidad y patrón
+ */
+function openWinningPatternSlide() {
+  tempCustomPattern = (saveData.customPattern || []).slice();
+  tempPatternType = saveData.patternType || "none";
+
+  // Actualizar casillas grandes
+  for (let i = 1; i <= 25; i++) {
+    const cellEl = document.getElementById(i + "bigcard");
+    if (cellEl) {
+      if (tempCustomPattern.indexOf(i) !== -1) {
+        cellEl.classList.add("bingoCardActive");
+      } else {
+        cellEl.classList.remove("bingoCardActive");
+      }
+    }
+  }
+
+  hide("masterBoardSlide");
+  show("winningPatternSlide", "grid");
+}
+
+/**
+ * Cierra el slide guardando el patrón seleccionado/editado
+ */
+function closeWinningPatternSlide() {
+  if (window.CopafaSync) {
+    window.CopafaSync.setPattern(tempPatternType, tempCustomPattern);
+  }
+  hide("winningPatternSlide");
+  show("masterBoardSlide", "grid");
+}
+
+/**
+ * Alterna una casilla específica en la tarjeta 5x5 grande
+ */
+function toggleWinningPattern(cellNumber) {
+  const num = parseInt(cellNumber, 10);
+  const cellEl = document.getElementById(num + "bigcard");
+  const idx = tempCustomPattern.indexOf(num);
+
+  if (idx === -1) {
+    tempCustomPattern.push(num);
+    if (cellEl) cellEl.classList.add("bingoCardActive");
+  } else {
+    tempCustomPattern.splice(idx, 1);
+    if (cellEl) cellEl.classList.remove("bingoCardActive");
+  }
+
+  // Al editar casillas directamente pasa a modo Personalizado
+  tempPatternType = "custom";
+}
+
+/**
+ * Selecciona una modalidad preset desde el slide
+ */
+function selectPatternPreset(presetKey) {
+  tempPatternType = presetKey;
+  const presets = window.CopafaSync ? window.CopafaSync.PATTERN_PRESETS : null;
+  if (presets && presets[presetKey]) {
+    tempCustomPattern = presets[presetKey].cells.slice();
+  } else {
+    tempCustomPattern = [];
+  }
+
+  for (let i = 1; i <= 25; i++) {
+    const cellEl = document.getElementById(i + "bigcard");
+    if (cellEl) {
+      if (tempCustomPattern.indexOf(i) !== -1) {
+        cellEl.classList.add("bingoCardActive");
+      } else {
+        cellEl.classList.remove("bingoCardActive");
+      }
+    }
+  }
+}
+
+/**
+ * Limpia todas las casillas activas en la interfaz de edición
+ */
+function clearWinningPatternUI() {
+  tempCustomPattern = [];
+  tempPatternType = "custom";
+  for (let i = 1; i <= 25; i++) {
+    const cellEl = document.getElementById(i + "bigcard");
+    if (cellEl) cellEl.classList.remove("bingoCardActive");
+  }
+}
+
+/**
+ * Maneja el cambio de selección en el dropdown de modalidades
+ */
+function onPatternSelectChanged(val) {
+  if (val === "custom") {
+    openWinningPatternSlide();
+  } else {
+    if (window.CopafaSync) {
+      window.CopafaSync.setPattern(val);
+    }
+  }
+}
+
+/**
+ * Carga un Preset de Evento completo (Preset 1, 2 o 3)
+ */
+function loadEventPreset(index) {
+  if (!window.CopafaSync) return;
+  window.CopafaSync.applyEventPreset(index);
+
+  // Retroalimentación visual en el botón de preset
+  const presetBtns = document.querySelectorAll(".quickPresetBtn");
+  if (presetBtns && presetBtns[index]) {
+    const activeBtn = presetBtns[index];
+    const originalText = activeBtn.innerText;
+    activeBtn.innerText = "✓ Cargado";
+    setTimeout(() => {
+      activeBtn.innerText = originalText;
+    }, 1000);
+  }
+}
+
+/* ==========================================================================
+   FORMULARIO DE DATOS DE EVENTO Y PARTIDA
+   ========================================================================== */
+
+/**
+ * Guarda los datos ingresados en el formulario del operador
+ */
+function saveGameDataFromUI() {
+  if (!window.CopafaSync) return;
+  const eventInput = document.getElementById("inputEventTitle");
+  const gameInput = document.getElementById("inputGameTitle");
+  const prizeInput = document.getElementById("inputPrizeTitle");
+  const sponsorInput = document.getElementById("inputSponsor");
+  const patternSelect = document.getElementById("selectPattern");
+
+  const eventTitle = eventInput ? eventInput.value : "";
+  const gameTitle = gameInput ? gameInput.value : "";
+  const prizeTitle = prizeInput ? prizeInput.value : "";
+  const sponsor = sponsorInput ? sponsorInput.value : "";
+  const patternType = patternSelect ? patternSelect.value : saveData.patternType;
+
+  window.CopafaSync.setGameInfo({
+    eventTitle: eventTitle,
+    gameTitle: gameTitle,
+    prizeTitle: prizeTitle,
+    sponsor: sponsor,
+    patternType: patternType
+  });
+
+  const btn = document.getElementById("saveGameDataBtn");
   if (btn) {
     btn.classList.add("savedFeedback");
-    btn.innerText = "¡GUARDADO!";
+    btn.innerText = "CONFIGURACIÓN GUARDADA ✓";
     setTimeout(() => {
       btn.classList.remove("savedFeedback");
-      btn.innerText = "GUARDAR DATOS";
+      btn.innerText = "GUARDAR CONFIGURACIÓN";
     }, 1200);
   }
 }
@@ -377,10 +558,15 @@ function saveGameDataFromUI() {
  */
 function populateGameDataUI(state) {
   if (!state) return;
+  const eventTitleInput = document.getElementById("inputEventTitle");
   const gameTitleInput = document.getElementById("inputGameTitle");
   const prizeTitleInput = document.getElementById("inputPrizeTitle");
   const sponsorInput = document.getElementById("inputSponsor");
+  const selectPattern = document.getElementById("selectPattern");
 
+  if (eventTitleInput && document.activeElement !== eventTitleInput) {
+    eventTitleInput.value = state.eventTitle || "";
+  }
   if (gameTitleInput && document.activeElement !== gameTitleInput) {
     gameTitleInput.value = state.gameTitle || "";
   }
@@ -390,7 +576,14 @@ function populateGameDataUI(state) {
   if (sponsorInput && document.activeElement !== sponsorInput) {
     sponsorInput.value = state.sponsor || "";
   }
+  if (selectPattern && document.activeElement !== selectPattern) {
+    selectPattern.value = state.patternType || "none";
+  }
 }
+
+/* ==========================================================================
+   RENDERIZADO DE TABLERO Y BALOTA GRANDE
+   ========================================================================== */
 
 /**
  * Sincroniza visualmente el tablero completo 1-75 según el estado
@@ -560,6 +753,7 @@ function setUpMasterBoard() {
   updateUndoButton();
   updateHistoryDisplay();
   populateGameDataUI(saveData);
+  renderMiniPatternCard();
 }
 
 function setUpSettings() {
@@ -594,4 +788,34 @@ function changeBackgroundColor(theColor) {
     window.CopafaSync.updateState({ themeColor: theColor });
   }
   setUpSettings();
+}
+
+/* ==========================================================================
+   UTILIDADES BINGO
+   ========================================================================== */
+
+function typeOfBingoLetter(num) {
+  if (window.CopafaSync) return window.CopafaSync.typeOfBingoLetter(num);
+  if (num <= 15) return "B";
+  if (num <= 30) return "I";
+  if (num <= 45) return "N";
+  if (num <= 60) return "G";
+  return "O";
+}
+
+function typeOfBingo(num) {
+  if (window.CopafaSync) return window.CopafaSync.typeOfBingo(num, saveData.bingoStyle);
+  if (saveData.bingoStyle === "vintage") return "bingoBallVintageActive";
+  if (num <= 15) return "bingoBallBallActiveB";
+  if (num <= 30) return "bingoBallBallActiveI";
+  if (num <= 45) return "bingoBallBallActiveN";
+  if (num <= 60) return "bingoBallBallActiveG";
+  return "bingoBallBallActiveO";
+}
+
+function formatBallNumber(num) {
+  if (window.CopafaSync) return window.CopafaSync.formatBallNumber(num);
+  const letter = typeOfBingoLetter(num);
+  const formattedNum = num < 10 ? "0" + num : "" + num;
+  return letter + "-" + formattedNum;
 }

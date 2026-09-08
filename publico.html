@@ -3,7 +3,7 @@
   <head>
     <title>COPAFA Bingo - Pantalla Pública</title>
     <meta charset="UTF-8">
-    <meta name="description" content="Vista Pública y Proyector para Bingo COPAFA - Fiesta Familiar SS.CC. 2026">
+    <meta name="description" content="Vista Pública y Proyector para Bingo COPAFA">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <link rel="shortcut icon" href="./assets/img/favicon.ico">
     <meta name="format-detection" content="telephone=no">
@@ -20,29 +20,47 @@
 
         <!-- Barra Superior Institucional -->
         <header class="publicTopBar">
-          <div style="display: flex; align-items: center;">
-            <span class="publicBrandTitle">COPAFA</span>
-            <span class="publicBrandSubtitle">Fiesta Familiar SS.CC. 2026</span>
+          <div class="publicBrandGroup">
+            <span class="publicBrandBadge">COPAFA</span>
+            <span class="publicBrandInstitution">SS.CC.</span>
+            <span id="publicBrandDivider" class="publicBrandDivider hidden">|</span>
+            <span id="publicEventTitle" class="publicEventTitle"></span>
           </div>
-          <div id="publicFullscreenBtn" class="publicFullscreenBtn" title="Pantalla Completa (F)"></div>
+          <div class="publicHeaderRight">
+            <span class="publicClaimText">«La familia es lo más importante»</span>
+            <div id="publicFullscreenBtn" class="publicFullscreenBtn" title="Pantalla Completa (F)"></div>
+          </div>
         </header>
 
         <!-- Distribución Principal 16:9 -->
         <main class="publicLayout">
 
-          <!-- Columna Izquierda: Escenario Informativo -->
+          <!-- Columna Izquierda: Escenario Informativo (Partida, Modalidad, Balota Gigante, Historial) -->
           <section class="publicStageCol">
 
             <!-- Tarjeta de Partida y Premio -->
-            <div class="publicGameCard">
-              <div id="publicGameTitle" class="publicGameTitle">PARTIDA EN CURSO</div>
-              <div id="publicPrizeTitle" class="publicPrizeTitle">PREMIO EN JUEGO</div>
+            <div id="publicGameCard" class="publicGameCard hidden">
+              <div id="publicGameTitle" class="publicGameTitle"></div>
+              <div id="publicPrizeTitle" class="publicPrizeTitle"></div>
               <div id="publicSponsor" class="publicSponsor hidden"></div>
+            </div>
+
+            <!-- Bloque de Modalidad y Patrón Visual 5x5 -->
+            <div id="publicPatternBox" class="publicPatternBox hidden">
+              <div class="publicPatternHeader">
+                <span class="publicPatternTag">MODALIDAD:</span>
+                <span id="publicPatternName" class="publicPatternName"></span>
+              </div>
+              <div class="publicPatternCardWrapper">
+                <div class="publicPatternCard" id="publicPatternGrid">
+                  <!-- 25 celdas generadas e iluminadas dinámicamente -->
+                </div>
+              </div>
             </div>
 
             <!-- Balota Gigante del Último Número -->
             <div class="publicBigBallWrapper">
-              <div class="publicBigBallLabel">Última Balota</div>
+              <div class="publicBigBallLabel">ÚLTIMA BOLILLA</div>
               <div id="publicBigBall" class="publicBigBall">
                 <div id="publicBigBallLetter" class="publicBigBallLetter">&nbsp;</div>
                 <div id="publicBigBallNumber" class="publicBigBallNumber">&nbsp;</div>
@@ -56,7 +74,7 @@
 
             <!-- Franja de Últimos 5 Números -->
             <div class="publicRecentHistory">
-              <div class="publicHistoryTitle">ÚLTIMOS NÚMEROS</div>
+              <div class="publicHistoryTitle">ÚLTIMAS 5 BOLILLAS</div>
               <div id="publicHistoryList" class="publicHistoryList">
                 <span class="publicHistoryEmpty">Sin números registrados</span>
               </div>
@@ -64,12 +82,12 @@
 
           </section>
 
-          <!-- Columna Derecha: Tablero Pasivo 1-75 -->
+          <!-- Columna Derecha: Tablero Pasivo 1-75 (Solo lectura) -->
           <section class="publicBoardGrid">
 
             <!-- Columna B (1 - 15) -->
             <div class="publicCol">
-              <div class="publicLetterHeader">B</div>
+              <div class="publicLetterHeader colB">B</div>
               <div class="publicBallsContainer">
                 <div class="publicBall" id="pubBall1">1</div>
                 <div class="publicBall" id="pubBall2">2</div>
@@ -91,7 +109,7 @@
 
             <!-- Columna I (16 - 30) -->
             <div class="publicCol">
-              <div class="publicLetterHeader">I</div>
+              <div class="publicLetterHeader colI">I</div>
               <div class="publicBallsContainer">
                 <div class="publicBall" id="pubBall16">16</div>
                 <div class="publicBall" id="pubBall17">17</div>
@@ -113,7 +131,7 @@
 
             <!-- Columna N (31 - 45) -->
             <div class="publicCol">
-              <div class="publicLetterHeader">N</div>
+              <div class="publicLetterHeader colN">N</div>
               <div class="publicBallsContainer">
                 <div class="publicBall" id="pubBall31">31</div>
                 <div class="publicBall" id="pubBall32">32</div>
@@ -135,7 +153,7 @@
 
             <!-- Columna G (46 - 60) -->
             <div class="publicCol">
-              <div class="publicLetterHeader">G</div>
+              <div class="publicLetterHeader colG">G</div>
               <div class="publicBallsContainer">
                 <div class="publicBall" id="pubBall46">46</div>
                 <div class="publicBall" id="pubBall47">47</div>
@@ -157,7 +175,7 @@
 
             <!-- Columna O (61 - 75) -->
             <div class="publicCol">
-              <div class="publicLetterHeader">O</div>
+              <div class="publicLetterHeader colO">O</div>
               <div class="publicBallsContainer">
                 <div class="publicBall" id="pubBall61">61</div>
                 <div class="publicBall" id="pubBall62">62</div>
@@ -178,13 +196,20 @@
             </div>
 
           </section>
+
         </main>
+
+        <!-- Pie institucional sutil -->
+        <footer class="publicFooter">
+          <span>COPAFA &bull; Fiesta Familiar SS.CC. &bull; Basado en Bingo Master Board (MIT License)</span>
+        </footer>
 
       </div>
     </div>
 
-    <!-- Scripts Compartidos y Exclusivos de la Vista Pública -->
+    <!-- Módulo Compartido de Sincronización -->
     <script src="./assets/js/copafa-sync.js"></script>
+    <!-- Lógica Exclusiva de Vista Pública -->
     <script src="./assets/js/publico.js"></script>
   </body>
 </html>

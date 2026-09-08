@@ -74,7 +74,8 @@
         <div class="controlsCol">
           <div class="controlsHeader">
             <span class="smallButton" id="reset" onclick="confirmResetBoard();">Reset</span>
-            <span class="smallButton disabled" id="undoButton" onclick="undoLastBall();">Deshacer último</span>
+            <span class="smallButton disabled" id="undoButton" onclick="undoLastBall();">Deshacer</span>
+            <span class="smallButton" id="btnPatternNav" onclick="openWinningPatternSlide();">Modalidad</span>
             <span class="smallButton" id="themes" onclick="hide('masterBoardSlide');show('settingsSlide', 'grid');">Themes</span>
           </div>
 
@@ -82,23 +83,68 @@
             ABRIR PANTALLA PÚBLICA
           </button>
 
+          <!-- Barra de Presets Rápidos de Evento -->
+          <div class="quickPresetsBar" title="Cargar configuración rápida">
+            <button type="button" class="quickPresetBtn" onclick="loadEventPreset(0);" title="1er Juego · Letra L · S/ 500">Preset 1</button>
+            <button type="button" class="quickPresetBtn" onclick="loadEventPreset(1);" title="2do Juego · Letra U · S/ 1,000">Preset 2</button>
+            <button type="button" class="quickPresetBtn" onclick="loadEventPreset(2);" title="3er Juego · Apagón · S/ 1,500">Preset 3</button>
+          </div>
+
           <!-- Bloque de Datos de Partida -->
           <div id="gameDataPanel" class="gameDataPanel">
-            <div class="gameDataHeader">DATOS DE PARTIDA</div>
+            <div class="gameDataHeader">CONFIGURACIÓN DE JUEGO</div>
+
+            <div class="gameDataField">
+              <label for="inputEventTitle">Evento:</label>
+              <input type="text" id="inputEventTitle" placeholder="Ej. Fiesta Familiar, Gran Bingo..." maxlength="50" autocomplete="off">
+            </div>
+
             <div class="gameDataField">
               <label for="inputGameTitle">Partida / Juego:</label>
-              <input type="text" id="inputGameTitle" placeholder="Ej. Bingo 1, 2do Juego..." maxlength="40" autocomplete="off">
+              <input type="text" id="inputGameTitle" placeholder="Ej. 1er Juego, 2do Juego..." maxlength="40" autocomplete="off">
             </div>
+
+            <div class="gameDataField">
+              <label for="selectPattern">Modalidad / Patrón:</label>
+              <div class="patternSelectRow">
+                <select id="selectPattern" onchange="onPatternSelectChanged(this.value);">
+                  <option value="none">Sin modalidad</option>
+                  <option value="letter_l">Letra L</option>
+                  <option value="letter_u">Letra U</option>
+                  <option value="blackout">Apagón</option>
+                  <option value="four_corners">Cuatro Esquinas</option>
+                  <option value="letter_x">Letra X</option>
+                  <option value="letter_t">Letra T</option>
+                  <option value="letter_h">Letra H</option>
+                  <option value="line_h">Línea Horizontal</option>
+                  <option value="line_v">Línea Vertical</option>
+                  <option value="diagonal">Diagonal</option>
+                  <option value="custom">Personalizado</option>
+                </select>
+                <button type="button" id="editPatternBtn" class="editPatternMiniBtn" onclick="openWinningPatternSlide();" title="Editar / Ver Patrón 5x5">
+                  Editar
+                </button>
+              </div>
+            </div>
+
+            <!-- Mini visualizador del patrón 5x5 en el panel del operador -->
+            <div class="miniPatternWrapper" onclick="openWinningPatternSlide();" title="Clic para ver/editar patrón 5x5">
+              <div class="miniBingoCard" id="operatorMiniCard"></div>
+              <div class="miniPatternLabel" id="operatorPatternLabel">Letra L</div>
+            </div>
+
             <div class="gameDataField">
               <label for="inputPrizeTitle">Premio:</label>
               <input type="text" id="inputPrizeTitle" placeholder="Ej. S/ 1,000 / Smart TV..." maxlength="50" autocomplete="off">
             </div>
+
             <div class="gameDataField">
               <label for="inputSponsor">Patrocinador (opcional):</label>
               <input type="text" id="inputSponsor" placeholder="Ej. Caja Arequipa..." maxlength="50" autocomplete="off">
             </div>
+
             <button type="button" id="saveGameDataBtn" class="operatorBtn saveGameBtn" onclick="saveGameDataFromUI();">
-              GUARDAR DATOS
+              GUARDAR CONFIGURACIÓN
             </button>
           </div>
 
@@ -274,6 +320,76 @@
         <div class="helpFooter">
           <div class="helpFooterLabel" onclick="hide('settingsSlide');show('masterBoardSlide', 'grid');">
             Go Back
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide de Modalidad y Patrón Ganador (Reutilizando arquitectura original de Bingo Master Board) -->
+      <div id="winningPatternSlide">
+        <h2>Modalidad de Juego / Patrón Ganador</h2>
+        <div class="helpContent">
+          <div class="flexCenter">
+            <div class="bigBingoCard">
+              <div class="bingoCardHeader bigBingoCardHeader">B</div>
+              <div class="bingoCardHeader bigBingoCardHeader">I</div>
+              <div class="bingoCardHeader bigBingoCardHeader">N</div>
+              <div class="bingoCardHeader bigBingoCardHeader">G</div>
+              <div class="bingoCardHeader bigBingoCardHeader">O</div>
+
+              <div class="bingoCardBody bigBingoCardBody" id="1bigcard" onclick="toggleWinningPattern(1);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="6bigcard" onclick="toggleWinningPattern(6);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="11bigcard" onclick="toggleWinningPattern(11);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="16bigcard" onclick="toggleWinningPattern(16);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="21bigcard" onclick="toggleWinningPattern(21);"></div>
+
+              <div class="bingoCardBody bigBingoCardBody" id="2bigcard" onclick="toggleWinningPattern(2);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="7bigcard" onclick="toggleWinningPattern(7);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="12bigcard" onclick="toggleWinningPattern(12);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="17bigcard" onclick="toggleWinningPattern(17);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="22bigcard" onclick="toggleWinningPattern(22);"></div>
+
+              <div class="bingoCardBody bigBingoCardBody" id="3bigcard" onclick="toggleWinningPattern(3);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="8bigcard" onclick="toggleWinningPattern(8);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="13bigcard" onclick="toggleWinningPattern(13);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="18bigcard" onclick="toggleWinningPattern(18);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="23bigcard" onclick="toggleWinningPattern(23);"></div>
+
+              <div class="bingoCardBody bigBingoCardBody" id="4bigcard" onclick="toggleWinningPattern(4);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="9bigcard" onclick="toggleWinningPattern(9);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="14bigcard" onclick="toggleWinningPattern(14);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="19bigcard" onclick="toggleWinningPattern(19);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="24bigcard" onclick="toggleWinningPattern(24);"></div>
+
+              <div class="bingoCardBody bigBingoCardBody" id="5bigcard" onclick="toggleWinningPattern(5);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="10bigcard" onclick="toggleWinningPattern(10);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="15bigcard" onclick="toggleWinningPattern(15);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="20bigcard" onclick="toggleWinningPattern(20);"></div>
+              <div class="bingoCardBody bigBingoCardBody" id="25bigcard" onclick="toggleWinningPattern(25);"></div>
+            </div>
+            <div>
+              <div class="winningPatternNames">
+                <div class="winningName" onclick="selectPatternPreset('none');">Sin Modalidad</div>
+                <div class="winningName" onclick="selectPatternPreset('line_h');">Línea Horizontal</div>
+                <div class="winningName" onclick="selectPatternPreset('line_v');">Línea Vertical</div>
+                <div class="winningName" onclick="selectPatternPreset('diagonal');">Diagonal</div>
+                <div class="winningName" onclick="selectPatternPreset('four_corners');">Cuatro Esquinas</div>
+                <div class="winningName" onclick="selectPatternPreset('letter_l');">Letra L</div>
+                <div class="winningName" onclick="selectPatternPreset('letter_u');">Letra U</div>
+                <div class="winningName" onclick="selectPatternPreset('letter_x');">Letra X</div>
+                <div class="winningName" onclick="selectPatternPreset('letter_t');">Letra T</div>
+                <div class="winningName" onclick="selectPatternPreset('letter_h');">Letra H</div>
+                <div class="winningName" onclick="selectPatternPreset('blackout');">Apagón</div>
+                <div class="winningName" onclick="clearWinningPatternUI();">Limpiar Todo</div>
+              </div>
+              <div class="cardExplanation">
+                Selecciona una modalidad o haz clic en las casillas para crear un patrón personalizado.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="helpFooter">
+          <div class="helpFooterLabel" onclick="closeWinningPatternSlide();">
+            Guardar y Volver al Tablero
           </div>
         </div>
       </div>
