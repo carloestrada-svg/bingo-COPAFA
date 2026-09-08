@@ -47,6 +47,12 @@ if (window.CopafaSync) {
     updateHistoryDisplay();
     populateGameDataUI(state);
     renderMiniPatternCard();
+    if (state.themeColor) {
+      changeBG(state.themeColor);
+      if (typeof setUpSettings === "function") {
+        setUpSettings();
+      }
+    }
   });
 }
 
@@ -128,8 +134,10 @@ function onFullScreenChange() {
 
 function show(elementName, display) {
   const fader = document.getElementById("fader");
-  fader.classList.add("notransition");
-  fader.style.opacity = "1";
+  if (elementName !== "fullScreenToggleLayer") {
+    fader.classList.add("notransition");
+    fader.style.opacity = "1";
+  }
 
   const targetEl = document.getElementById(elementName);
   if (targetEl) {
@@ -234,10 +242,12 @@ function show(elementName, display) {
     };
   }
 
-  setTimeout(() => {
-    fader.classList.remove("notransition");
-    fader.style.opacity = "0";
-  }, 50);
+  if (elementName !== "fullScreenToggleLayer") {
+    setTimeout(() => {
+      fader.classList.remove("notransition");
+      fader.style.opacity = "0";
+    }, 50);
+  }
 }
 
 function hide(elementName) {
@@ -251,17 +261,21 @@ function hide(elementName) {
 
 function changeBG(theColor) {
   const area = document.getElementById("area");
+  const fader = document.getElementById("fader");
+  let bg = "#eae9d2";
   if (theColor === "classic") {
-    area.style.background = "#eae9d2";
+    bg = "#eae9d2";
   } else if (theColor === "red") {
-    area.style.background = "#ffd3cc";
+    bg = "#ffd3cc";
   } else if (theColor === "green") {
-    area.style.background = "#cae3b5";
+    bg = "#cae3b5";
   } else if (theColor === "blue") {
-    area.style.background = "#d3e0ff";
+    bg = "#d3e0ff";
   } else if (theColor === "purple") {
-    area.style.background = "#ebceea";
+    bg = "#ebceea";
   }
+  if (area) area.style.background = bg;
+  if (fader) fader.style.background = bg;
 }
 
 function changeFullScreenImg() {
@@ -784,6 +798,7 @@ function setUpSettings() {
 
 function changeBackgroundColor(theColor) {
   saveData.themeColor = theColor;
+  changeBG(theColor);
   if (window.CopafaSync) {
     window.CopafaSync.updateState({ themeColor: theColor });
   }

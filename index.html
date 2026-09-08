@@ -19,8 +19,8 @@
 
     <noscript class="noscript">
       <div>
-        <p><strong>JavaScript is disabled.</strong></p>
-        <p>Please enable it to use COPAFA Bingo.</p>
+        <p><strong>JavaScript está desactivado.</strong></p>
+        <p>Por favor, actívelo para utilizar COPAFA Bingo.</p>
       </div>
     </noscript>
 
@@ -56,7 +56,9 @@
               B I N G O
             </div>
             <div id="subheading">
-              COPAFA
+              <div class="titleLogoContainer">
+                <img src="./assets/img/copafa-logo.png" alt="COPAFA" class="titleLogo" />
+              </div>
             </div>
             <div id="titleSelection">
               <div id="goToMasterBoard" onclick="hide('titleSlide');show('masterBoardSlide', 'grid');">Tablero Principal</div>
@@ -66,17 +68,20 @@
         <div id="copyright">
           <!-- Legal attribution preserved according to MIT License:
                Based on Bingo Master Board v3.0.1 (c) 2011-2018 Timothy Hsu (Games by Tim). Licensed under the MIT License. -->
-          <div id="copyrightLabel" style="cursor:default;">COPAFA Bingo &bull; Basado en Bingo Master Board (MIT License)</div>
+          <div id="copyrightLabel" style="cursor:default;">COPAFA - Colegio de los Sagrados Corazones</div>
         </div>
       </div>
 
       <div id="masterBoardSlide">
         <div class="controlsCol">
+          <div class="operatorBrandBar">
+            <img src="./assets/img/copafa-logo.png" alt="COPAFA" class="operatorLogo" />
+          </div>
           <div class="controlsHeader">
-            <span class="smallButton" id="reset" onclick="confirmResetBoard();">Reset</span>
+            <span class="smallButton" id="reset" onclick="confirmResetBoard();">Nueva partida</span>
             <span class="smallButton disabled" id="undoButton" onclick="undoLastBall();">Deshacer</span>
             <span class="smallButton" id="btnPatternNav" onclick="openWinningPatternSlide();">Modalidad</span>
-            <span class="smallButton" id="themes" onclick="hide('masterBoardSlide');show('settingsSlide', 'grid');">Themes</span>
+            <span class="smallButton" id="themes" onclick="hide('masterBoardSlide');show('settingsSlide', 'grid');">Temas</span>
           </div>
 
           <button type="button" id="openPublicBtn" class="operatorBtn publicLaunchBtn" onclick="window.open('publico.html', 'copafa_publico');" title="Abrir Pantalla Pública para Proyector">
@@ -161,11 +166,11 @@
           <div id="ballsDrawnRemaining">
             <span id="ballsDrawn">
               <span id="ballsDrawnNum" style="font-size:38px;font-weight:700;">0</span>
-               &nbsp;drawn
+               &nbsp;registradas
             </span>
             <span id="ballsRemaining">
               <span id="ballsRemainingNum" style="font-size:38px;font-weight:700;">75</span>
-               &nbsp;remaining
+               &nbsp;restantes
            </span>
           </div>
         </div>
@@ -291,21 +296,21 @@
       </div>
 
       <div id="settingsSlide">
-        <h2>Themes</h2>
+        <h2>Temas</h2>
         <div class="helpContent">
           <div class="flexCenter">
             <div style="text-align:center;">
-              <p><strong>Background</strong></p>
+              <p><strong>Color de Fondo</strong></p>
               <p class="themeSelection">
-                <span class="themeColor" id="classic" onclick="changeBackgroundColor('classic');">Classic</span>
-                <span class="themeColor" id="red" onclick="changeBackgroundColor('red');">Red</span>
-                <span class="themeColor" id="green" onclick="changeBackgroundColor('green');">Green</span>
+                <span class="themeColor" id="classic" onclick="changeBackgroundColor('classic');">Clásico</span>
+                <span class="themeColor" id="red" onclick="changeBackgroundColor('red');">Rojo</span>
+                <span class="themeColor" id="green" onclick="changeBackgroundColor('green');">Verde</span>
               </p>
               <p class="themeSelection" style="margin-bottom:1.5em;">
-                <span class="themeColor" id="blue" onclick="changeBackgroundColor('blue');">Blue</span>
-                <span class="themeColor" id="purple" onclick="changeBackgroundColor('purple');">Purple</span>
+                <span class="themeColor" id="blue" onclick="changeBackgroundColor('blue');">Azul</span>
+                <span class="themeColor" id="purple" onclick="changeBackgroundColor('purple');">Morado</span>
               </p>
-              <p><strong>Bingo Numbers</strong></p>
+              <p><strong>Estilo de Balotas</strong></p>
               <p style="display:flex;justify-content:center;">
                 <span id="bingoStyleBall" onclick="changeBingoStyle('ball');">
                   <span class="bingoBallBall bingoBallBallActiveB">15</span>
@@ -319,14 +324,14 @@
         </div>
         <div class="helpFooter">
           <div class="helpFooterLabel" onclick="hide('settingsSlide');show('masterBoardSlide', 'grid');">
-            Go Back
+            Volver al Tablero
           </div>
         </div>
       </div>
 
       <!-- Slide de Modalidad y Patrón Ganador (Reutilizando arquitectura original de Bingo Master Board) -->
       <div id="winningPatternSlide">
-        <h2>Modalidad de Juego / Patrón Ganador</h2>
+        <h2>Modalidad de Juego</h2>
         <div class="helpContent">
           <div class="flexCenter">
             <div class="bigBingoCard">

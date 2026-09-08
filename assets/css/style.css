@@ -479,24 +479,65 @@ margin:0.5em 0;
   color:#969696;
 }
 
-.controlsHeader {
-  margin: 10px auto 0 auto;
+.titleLogoContainer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 8px 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  margin-top: 10px;
+}
+
+.titleLogo {
+  height: 52px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
+}
+
+.operatorBrandBar {
+  width: 250px;
+  margin: 6px auto 2px auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  width: 245px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 6px;
+  padding: 3px 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+.operatorLogo {
+  height: 20px;
+  width: auto;
+  max-width: 95px;
+  object-fit: contain;
+  display: block;
+}
+
+.controlsHeader {
+  margin: 4px auto 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 250px;
 }
 
 .smallButton {
-  font-size:11.5px;
-  font-family:arial,sans-serif;
-  cursor:pointer;
-  padding: 4px 6px;
-  border-radius:6px;
-  transition:background-color 0.15s, opacity 0.15s;
-  user-select:none;
-  white-space:nowrap;
+  font-size: 10.5px;
+  font-family: arial,sans-serif;
+  cursor: pointer;
+  padding: 4px 5px;
+  border-radius: 6px;
+  transition: background-color 0.15s, opacity 0.15s;
+  user-select: none;
+  white-space: nowrap;
 }
 
 #reset {

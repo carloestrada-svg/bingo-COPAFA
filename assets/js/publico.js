@@ -67,11 +67,23 @@
   }
 
   /**
+   * Aplica el tema de color sincronizado con Bingo Master Board
+   */
+  function renderTheme(themeColor) {
+    const area = document.getElementById("publicArea");
+    if (!area) return;
+    const theme = (themeColor || "classic").toLowerCase();
+    area.classList.remove("theme-classic", "theme-red", "theme-green", "theme-blue", "theme-purple");
+    area.classList.add("theme-" + theme);
+  }
+
+  /**
    * Renderiza el estado completo en la pantalla pública
    */
   function renderState(state) {
     if (!state) return;
 
+    renderTheme(state.themeColor);
     renderGameInfo(state);
     renderPattern(state);
     renderBoard(state.drawnBingoBalls || []);
