@@ -146,6 +146,7 @@
     customPattern: [],
     drawnBingoBalls: [],
     themeColor: "classic",
+    bingoStyle: "ball",
     ballsDrawnRemaining: "drawn",
     updatedAt: 0
   };

@@ -604,6 +604,7 @@ function populateGameDataUI(state) {
  */
 function renderBoardFromState(state) {
   const drawn = state && Array.isArray(state.drawnBingoBalls) ? state.drawnBingoBalls : [];
+  const lastNum = drawn.length > 0 ? drawn[drawn.length - 1] : null;
   for (let i = 1; i <= 75; i++) {
     const ballEl = document.getElementById(i + "bingo");
     if (!ballEl) continue;
@@ -611,6 +612,11 @@ function renderBoardFromState(state) {
     const ballType = typeOfBingo(i);
     if (drawn.indexOf(i) !== -1) {
       ballEl.classList.add(ballType);
+      if (i === lastNum) {
+        ballEl.classList.add("bingoBallLatest");
+      } else {
+        ballEl.classList.remove("bingoBallLatest");
+      }
     } else {
       ballEl.classList.remove(
         "bingoBallBallActiveB",
@@ -618,7 +624,8 @@ function renderBoardFromState(state) {
         "bingoBallBallActiveN",
         "bingoBallBallActiveG",
         "bingoBallBallActiveO",
-        "bingoBallVintageActive"
+        "bingoBallVintageActive",
+        "bingoBallLatest"
       );
     }
   }
@@ -728,7 +735,8 @@ function toggleBallsDrawnRemaining(renderOrToggle) {
 }
 
 function renderBingoStyle() {
-  if (saveData.bingoStyle === "ball") {
+  const currentStyle = saveData && saveData.bingoStyle === "vintage" ? "vintage" : "ball";
+  if (currentStyle === "ball") {
     for (let i = 0; i < 75; i += 1) {
       const el = document.getElementById(i + 1 + "bingo");
       if (el) {
