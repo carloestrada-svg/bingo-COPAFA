@@ -480,7 +480,7 @@ margin:0.5em 0;
 }
 
 .controlsHeader {
-  margin: 12px auto 0 auto;
+  margin: 10px auto 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -536,41 +536,151 @@ margin:0.5em 0;
   background-color:rgba(80,80,80,0.25);
 }
 
+/* Botones y Panel de Operador */
+.operatorBtn {
+  font-family: arial, sans-serif;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 700;
+  transition: background-color 0.15s, transform 0.1s;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.publicLaunchBtn {
+  width: 242px;
+  height: 27px;
+  margin: 8px auto 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #2b579a;
+  color: #ffffff;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  border: 1px solid #1f3f6f;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.publicLaunchBtn:hover {
+  background-color: #3b6cb5;
+}
+
+.publicLaunchBtn:active {
+  transform: scale(0.98);
+}
+
+.gameDataPanel {
+  width: 242px;
+  margin: 8px auto 0 auto;
+  padding: 7px 9px;
+  background: rgba(0, 0, 0, 0.07);
+  border: 1.5px solid rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.gameDataHeader {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #333;
+  margin-bottom: 4px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.gameDataField {
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.gameDataField label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #444;
+  margin-bottom: 1px;
+}
+
+.gameDataField input {
+  font-family: arial, sans-serif;
+  font-size: 11px;
+  padding: 2px 5px;
+  height: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  background: #ffffff;
+  color: #111;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.gameDataField input:focus {
+  border-color: #2b579a;
+  box-shadow: 0 0 3px rgba(43, 87, 154, 0.4);
+}
+
+.saveGameBtn {
+  width: 100%;
+  height: 23px;
+  margin-top: 3px;
+  background-color: #4a77b2;
+  color: #ffffff;
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  border: 1px solid #33598d;
+}
+
+.saveGameBtn:hover {
+  background-color: #5c8ecf;
+}
+
+.saveGameBtn:active {
+  transform: scale(0.98);
+}
+
+.saveGameBtn.savedFeedback {
+  background-color: #5f8027 !important;
+  border-color: #48631b !important;
+}
+
 #recentHistoryContainer {
   width: 242px;
-  margin: 22px auto 0 auto;
-  padding: 8px 4px;
+  margin: 8px auto 0 auto;
+  padding: 6px 4px;
   background: rgba(0, 0, 0, 0.08);
   border: 1.5px solid rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
+  border-radius: 8px;
   text-align: center;
   box-sizing: border-box;
 }
 
 #recentHistoryTitle {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 1px;
   color: #444;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   font-family: arial, sans-serif;
 }
 
 #recentHistoryList {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
   font-family: arial, sans-serif;
   color: #222;
-  min-height: 22px;
+  min-height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   white-space: nowrap;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
 .historyEmpty {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: normal;
   color: #666;
   font-style: italic;
@@ -601,10 +711,10 @@ margin:0.5em 0;
 
 #bigBingoBall {
   border-radius:50%;
-  width:186px;
-  height:186px;
+  width:150px;
+  height:150px;
   margin:0 auto;
-  margin-top:36px;
+  margin-top:12px;
   cursor:pointer;
 }
 
@@ -613,22 +723,22 @@ margin:0.5em 0;
 }
 
 #bigBingoLetter {
-  font-size:62px;
+  font-size:48px;
   font-weight:700;
   text-align:center;
-  width:60px;
+  width:50px;
   margin:0 auto;
   line-height:1;
-  margin-top:12px;
+  margin-top:8px;
 }
 
 #bigBingoNumber {
-  font-size:95px;
+  font-size:78px;
   font-weight:700;
   text-align:center;
-  width:110px;
-  height:110px;
-  margin:-14px auto 0 auto;
+  width:95px;
+  height:95px;
+  margin:-12px auto 0 auto;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -637,12 +747,12 @@ margin:0.5em 0;
 
 #ballsDrawnRemaining {
   width:193px;
-  height:44px;
-  font-size:25px;
+  height:40px;
+  font-size:22px;
   background:rgba(179,162,199,0.67);
   border:1.2px solid rgba(74,126,187,0.85);
   border-radius:12px;
-  margin:24px auto 0 auto;
+  margin:12px auto 0 auto;
   display:flex;
   align-items:center;
   justify-content:center;

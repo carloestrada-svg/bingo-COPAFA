@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <title>COPAFA Bingo - Pantalla Pública</title>
+    <meta charset="UTF-8">
+    <meta name="description" content="Vista Pública y Proyector para Bingo COPAFA - Fiesta Familiar SS.CC. 2026">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <link rel="shortcut icon" href="./assets/img/favicon.ico">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-title" content="Bingo COPAFA">
+    <link rel="apple-touch-icon" sizes="180x180" href="./assets/img/appIcon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <link rel="stylesheet" href="./assets/css/publico.css">
+  </head>
+
+  <body>
+    <div id="publicWrapper">
+      <div id="publicArea">
+
+        <!-- Barra Superior Institucional -->
+        <header class="publicTopBar">
+          <div style="display: flex; align-items: center;">
+            <span class="publicBrandTitle">COPAFA</span>
+            <span class="publicBrandSubtitle">Fiesta Familiar SS.CC. 2026</span>
+          </div>
+          <div id="publicFullscreenBtn" class="publicFullscreenBtn" title="Pantalla Completa (F)"></div>
+        </header>
+
+        <!-- Distribución Principal 16:9 -->
+        <main class="publicLayout">
+
+          <!-- Columna Izquierda: Escenario Informativo -->
+          <section class="publicStageCol">
+
+            <!-- Tarjeta de Partida y Premio -->
+            <div class="publicGameCard">
+              <div id="publicGameTitle" class="publicGameTitle">PARTIDA EN CURSO</div>
+              <div id="publicPrizeTitle" class="publicPrizeTitle">PREMIO EN JUEGO</div>
+              <div id="publicSponsor" class="publicSponsor hidden"></div>
+            </div>
+
+            <!-- Balota Gigante del Último Número -->
+            <div class="publicBigBallWrapper">
+              <div class="publicBigBallLabel">Última Balota</div>
+              <div id="publicBigBall" class="publicBigBall">
+                <div id="publicBigBallLetter" class="publicBigBallLetter">&nbsp;</div>
+                <div id="publicBigBallNumber" class="publicBigBallNumber">&nbsp;</div>
+              </div>
+            </div>
+
+            <!-- Contador de Balotas -->
+            <div class="publicCounterBadge">
+              <span id="publicCounterNum" class="counterNum">0</span> bolillas registradas
+            </div>
+
+            <!-- Franja de Últimos 5 Números -->
+            <div class="publicRecentHistory">
+              <div class="publicHistoryTitle">ÚLTIMOS NÚMEROS</div>
+              <div id="publicHistoryList" class="publicHistoryList">
+                <span class="publicHistoryEmpty">Sin números registrados</span>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- Columna Derecha: Tablero Pasivo 1-75 -->
+          <section class="publicBoardGrid">
+
+            <!-- Columna B (1 - 15) -->
+            <div class="publicCol">
+              <div class="publicLetterHeader">B</div>
+              <div class="publicBallsContainer">
+                <div class="publicBall" id="pubBall1">1</div>
+                <div class="publicBall" id="pubBall2">2</div>
+                <div class="publicBall" id="pubBall3">3</div>
+                <div class="publicBall" id="pubBall4">4</div>
+                <div class="publicBall" id="pubBall5">5</div>
+                <div class="publicBall" id="pubBall6">6</div>
+                <div class="publicBall" id="pubBall7">7</div>
+                <div class="publicBall" id="pubBall8">8</div>
+                <div class="publicBall" id="pubBall9">9</div>
+                <div class="publicBall" id="pubBall10">10</div>
+                <div class="publicBall" id="pubBall11">11</div>
+                <div class="publicBall" id="pubBall12">12</div>
+                <div class="publicBall" id="pubBall13">13</div>
+                <div class="publicBall" id="pubBall14">14</div>
+                <div class="publicBall" id="pubBall15">15</div>
+              </div>
+            </div>
+
+            <!-- Columna I (16 - 30) -->
+            <div class="publicCol">
+              <div class="publicLetterHeader">I</div>
+              <div class="publicBallsContainer">
+                <div class="publicBall" id="pubBall16">16</div>
+                <div class="publicBall" id="pubBall17">17</div>
+                <div class="publicBall" id="pubBall18">18</div>
+                <div class="publicBall" id="pubBall19">19</div>
+                <div class="publicBall" id="pubBall20">20</div>
+                <div class="publicBall" id="pubBall21">21</div>
+                <div class="publicBall" id="pubBall22">22</div>
+                <div class="publicBall" id="pubBall23">23</div>
+                <div class="publicBall" id="pubBall24">24</div>
+                <div class="publicBall" id="pubBall25">25</div>
+                <div class="publicBall" id="pubBall26">26</div>
+                <div class="publicBall" id="pubBall27">27</div>
+                <div class="publicBall" id="pubBall28">28</div>
+                <div class="publicBall" id="pubBall29">29</div>
+                <div class="publicBall" id="pubBall30">30</div>
+              </div>
+            </div>
+
+            <!-- Columna N (31 - 45) -->
+            <div class="publicCol">
+              <div class="publicLetterHeader">N</div>
+              <div class="publicBallsContainer">
+                <div class="publicBall" id="pubBall31">31</div>
+                <div class="publicBall" id="pubBall32">32</div>
+                <div class="publicBall" id="pubBall33">33</div>
+                <div class="publicBall" id="pubBall34">34</div>
+                <div class="publicBall" id="pubBall35">35</div>
+                <div class="publicBall" id="pubBall36">36</div>
+                <div class="publicBall" id="pubBall37">37</div>
+                <div class="publicBall" id="pubBall38">38</div>
+                <div class="publicBall" id="pubBall39">39</div>
+                <div class="publicBall" id="pubBall40">40</div>
+                <div class="publicBall" id="pubBall41">41</div>
+                <div class="publicBall" id="pubBall42">42</div>
+                <div class="publicBall" id="pubBall43">43</div>
+                <div class="publicBall" id="pubBall44">44</div>
+                <div class="publicBall" id="pubBall45">45</div>
+              </div>
+            </div>
+
+            <!-- Columna G (46 - 60) -->
+            <div class="publicCol">
+              <div class="publicLetterHeader">G</div>
+              <div class="publicBallsContainer">
+                <div class="publicBall" id="pubBall46">46</div>
+                <div class="publicBall" id="pubBall47">47</div>
+                <div class="publicBall" id="pubBall48">48</div>
+                <div class="publicBall" id="pubBall49">49</div>
+                <div class="publicBall" id="pubBall50">50</div>
+                <div class="publicBall" id="pubBall51">51</div>
+                <div class="publicBall" id="pubBall52">52</div>
+                <div class="publicBall" id="pubBall53">53</div>
+                <div class="publicBall" id="pubBall54">54</div>
+                <div class="publicBall" id="pubBall55">55</div>
+                <div class="publicBall" id="pubBall56">56</div>
+                <div class="publicBall" id="pubBall57">57</div>
+                <div class="publicBall" id="pubBall58">58</div>
+                <div class="publicBall" id="pubBall59">59</div>
+                <div class="publicBall" id="pubBall60">60</div>
+              </div>
+            </div>
+
+            <!-- Columna O (61 - 75) -->
+            <div class="publicCol">
+              <div class="publicLetterHeader">O</div>
+              <div class="publicBallsContainer">
+                <div class="publicBall" id="pubBall61">61</div>
+                <div class="publicBall" id="pubBall62">62</div>
+                <div class="publicBall" id="pubBall63">63</div>
+                <div class="publicBall" id="pubBall64">64</div>
+                <div class="publicBall" id="pubBall65">65</div>
+                <div class="publicBall" id="pubBall66">66</div>
+                <div class="publicBall" id="pubBall67">67</div>
+                <div class="publicBall" id="pubBall68">68</div>
+                <div class="publicBall" id="pubBall69">69</div>
+                <div class="publicBall" id="pubBall70">70</div>
+                <div class="publicBall" id="pubBall71">71</div>
+                <div class="publicBall" id="pubBall72">72</div>
+                <div class="publicBall" id="pubBall73">73</div>
+                <div class="publicBall" id="pubBall74">74</div>
+                <div class="publicBall" id="pubBall75">75</div>
+              </div>
+            </div>
+
+          </section>
+        </main>
+
+      </div>
+    </div>
+
+    <!-- Scripts Compartidos y Exclusivos de la Vista Pública -->
+    <script src="./assets/js/copafa-sync.js"></script>
+    <script src="./assets/js/publico.js"></script>
+  </body>
+</html>

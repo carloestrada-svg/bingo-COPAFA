@@ -1,11 +1,10 @@
 /**
- * COPAFA Bingo - Motor de Control y Tablero Maestro
+ * COPAFA Bingo - Motor de Control y Tablero del Operador
  * Basado en Bingo Master Board v3.0.1 (c) 2011-2018 Timothy Hsu (Games by Tim)
  * Distribuido bajo la Licencia MIT (ver archivo LICENSE)
  *
- * Adaptación funcional Fase 1: Registro manual exclusivo, eliminación de sorteo digital,
- * protección contra borrados accidentales, función Deshacer último, confirmación de reset
- * e historial visual de balotas registradas.
+ * Fase 2A: Integración con CopafaSync para persistencia unificada y sincronización
+ * en tiempo real con la Vista Pública / Proyector (publico.html).
  */
 
 const fixedWidth = document.getElementById("area").offsetWidth;
@@ -14,47 +13,32 @@ let isFullScreen = false;
 let loadedMasterBoard = false;
 let keyPressed = false;
 
-let saveData = {
-  drawnBingoBalls: [],
-  themeColor: "classic",
-  bingoStyle: "ball",
-  ballsDrawnRemaining: "drawn",
-  firstRun: 0
-};
+// Estado enlazado al motor de sincronización
+let saveData = window.CopafaSync
+  ? window.CopafaSync.getState()
+  : {
+      version: 2,
+      drawnBingoBalls: [],
+      themeColor: "classic",
+      bingoStyle: "ball",
+      ballsDrawnRemaining: "drawn",
+      gameTitle: "",
+      prizeTitle: "",
+      sponsor: "",
+      firstRun: 0
+    };
 
-function loadSavedData() {
-  if (supportsLocalStorage && localStorage.getItem("bingoMasterBoardSaveData")) {
-    try {
-      const parsedData = JSON.parse(localStorage.getItem("bingoMasterBoardSaveData"));
-      if (parsedData && typeof parsedData === "object") {
-        if (Array.isArray(parsedData.drawnBingoBalls)) {
-          saveData.drawnBingoBalls = parsedData.drawnBingoBalls;
-        }
-        if (parsedData.themeColor) {
-          saveData.themeColor = parsedData.themeColor;
-        }
-        if (parsedData.bingoStyle) {
-          saveData.bingoStyle = parsedData.bingoStyle;
-        }
-        if (parsedData.ballsDrawnRemaining) {
-          saveData.ballsDrawnRemaining = parsedData.ballsDrawnRemaining;
-        }
-        if (parsedData.firstRun !== undefined) {
-          saveData.firstRun = parsedData.firstRun;
-        }
-      }
-    } catch (err) {
-      console.error("Error al leer datos desde localStorage:", err);
-    }
-  }
-}
-
-loadSavedData();
-
-function save() {
-  if (supportsLocalStorage) {
-    localStorage.setItem("bingoMasterBoardSaveData", JSON.stringify(saveData));
-  }
+// Suscripción al motor de sincronización CopafaSync
+if (window.CopafaSync) {
+  window.CopafaSync.subscribe(function (state) {
+    saveData = state;
+    renderBoardFromState(state);
+    updateBigBingoBall();
+    updateBallStats();
+    updateUndoButton();
+    updateHistoryDisplay();
+    populateGameDataUI(state);
+  });
 }
 
 function init() {
@@ -155,6 +139,12 @@ function show(elementName, display) {
       loadedMasterBoard = true;
     }
     document.onkeydown = function (e) {
+      // Si el operador está escribiendo en los campos de partida/premio, no interceptar teclado
+      const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
+      if (activeTag === "input" || activeTag === "textarea") {
+        return;
+      }
+
       if (!keyPressed) {
         keyPressed = true;
         if (e.keyCode === 82) {
@@ -289,38 +279,34 @@ function changeBG(color) {
 }
 
 function typeOfBingo(num) {
+  if (window.CopafaSync) {
+    return window.CopafaSync.typeOfBingo(num, saveData.bingoStyle);
+  }
   if (saveData.bingoStyle === "vintage") {
     return "bingoBallVintageActive";
-  } else {
-    if (num <= 15) {
-      return "bingoBallBallActiveB";
-    } else if (num <= 30) {
-      return "bingoBallBallActiveI";
-    } else if (num <= 45) {
-      return "bingoBallBallActiveN";
-    } else if (num <= 60) {
-      return "bingoBallBallActiveG";
-    } else {
-      return "bingoBallBallActiveO";
-    }
   }
+  if (num <= 15) return "bingoBallBallActiveB";
+  if (num <= 30) return "bingoBallBallActiveI";
+  if (num <= 45) return "bingoBallBallActiveN";
+  if (num <= 60) return "bingoBallBallActiveG";
+  return "bingoBallBallActiveO";
 }
 
 function typeOfBingoLetter(num) {
-  if (num <= 15) {
-    return "B";
-  } else if (num <= 30) {
-    return "I";
-  } else if (num <= 45) {
-    return "N";
-  } else if (num <= 60) {
-    return "G";
-  } else {
-    return "O";
+  if (window.CopafaSync) {
+    return window.CopafaSync.typeOfBingoLetter(num);
   }
+  if (num <= 15) return "B";
+  if (num <= 30) return "I";
+  if (num <= 45) return "N";
+  if (num <= 60) return "G";
+  return "O";
 }
 
 function formatBallNumber(num) {
+  if (window.CopafaSync) {
+    return window.CopafaSync.formatBallNumber(num);
+  }
   const letter = typeOfBingoLetter(num);
   const formattedNum = num < 10 ? "0" + num : "" + num;
   return `${letter}-${formattedNum}`;
@@ -331,78 +317,104 @@ function formatBallNumber(num) {
  * PROTECCIÓN: Si el número ya fue registrado, un segundo clic NO hace nada.
  */
 function activateBingoBall(bingoIDNum) {
-  if (saveData.drawnBingoBalls.indexOf(bingoIDNum) !== -1) {
-    return; // Ya registrado; no borrar accidentalmente
+  if (window.CopafaSync) {
+    window.CopafaSync.addBall(bingoIDNum);
   }
-
-  const typeOfBingoBall = typeOfBingo(bingoIDNum);
-  const typeOfBingoBallLetter = typeOfBingoLetter(bingoIDNum);
-  const bingoID = bingoIDNum + "bingo";
-  const ballEl = document.getElementById(bingoID);
-  if (ballEl) {
-    ballEl.classList.add(typeOfBingoBall);
-  }
-
-  const bigBall = document.getElementById("bigBingoBall");
-  bigBall.classList.remove(
-    "bingoBallBallActiveB",
-    "bingoBallBallActiveI",
-    "bingoBallBallActiveN",
-    "bingoBallBallActiveG",
-    "bingoBallBallActiveO",
-    "bigBingoBallVintage"
-  );
-  if (saveData.bingoStyle === "ball") {
-    bigBall.classList.add(typeOfBingoBall);
-  } else {
-    bigBall.classList.add("bigBingoBallVintage");
-  }
-
-  const bigLetter = document.getElementById("bigBingoLetter");
-  const bigNumber = document.getElementById("bigBingoNumber");
-  bigLetter.innerHTML = typeOfBingoBallLetter;
-  bigNumber.innerHTML = bingoIDNum;
-  bigNumber.style.fontSize = "104px";
-  setTimeout(() => {
-    bigNumber.style.fontSize = "95px";
-  }, 100);
-
-  saveData.drawnBingoBalls.push(bingoIDNum);
-  save();
-
-  updateBallStats();
-  updateUndoButton();
-  updateHistoryDisplay();
 }
 
 /**
  * Deshace únicamente el último número registrado.
  */
 function undoLastBall() {
-  if (!saveData.drawnBingoBalls || saveData.drawnBingoBalls.length === 0) {
-    return;
+  if (window.CopafaSync) {
+    window.CopafaSync.undoLastBall();
+  }
+}
+
+/**
+ * Pide confirmación al usuario antes de reiniciar una partida.
+ */
+function confirmResetBoard() {
+  const confirmed = window.confirm(
+    "¿Seguro que deseas iniciar una nueva partida? Se borrarán todos los números registrados."
+  );
+  if (confirmed) {
+    if (window.CopafaSync) {
+      window.CopafaSync.resetDrawnBalls();
+    }
+  }
+}
+
+/**
+ * Guarda los datos de la partida ingresados por el operador
+ */
+function saveGameDataFromUI() {
+  const gameTitleInput = document.getElementById("inputGameTitle");
+  const prizeTitleInput = document.getElementById("inputPrizeTitle");
+  const sponsorInput = document.getElementById("inputSponsor");
+  const btn = document.getElementById("saveGameDataBtn");
+
+  const gameTitle = gameTitleInput ? gameTitleInput.value : "";
+  const prizeTitle = prizeTitleInput ? prizeTitleInput.value : "";
+  const sponsor = sponsorInput ? sponsorInput.value : "";
+
+  if (window.CopafaSync) {
+    window.CopafaSync.setGameInfo(gameTitle, prizeTitle, sponsor);
   }
 
-  const lastNum = saveData.drawnBingoBalls.pop();
-  const bingoID = lastNum + "bingo";
-  const ballEl = document.getElementById(bingoID);
-  if (ballEl) {
-    ballEl.classList.remove(
-      "bingoBallBallActiveB",
-      "bingoBallBallActiveI",
-      "bingoBallBallActiveN",
-      "bingoBallBallActiveG",
-      "bingoBallBallActiveO",
-      "bingoBallVintageActive"
-    );
+  if (btn) {
+    btn.classList.add("savedFeedback");
+    btn.innerText = "¡GUARDADO!";
+    setTimeout(() => {
+      btn.classList.remove("savedFeedback");
+      btn.innerText = "GUARDAR DATOS";
+    }, 1200);
   }
+}
 
-  updateBigBingoBall();
-  save();
+/**
+ * Puebla los inputs del operador con el estado actual
+ */
+function populateGameDataUI(state) {
+  if (!state) return;
+  const gameTitleInput = document.getElementById("inputGameTitle");
+  const prizeTitleInput = document.getElementById("inputPrizeTitle");
+  const sponsorInput = document.getElementById("inputSponsor");
 
-  updateBallStats();
-  updateUndoButton();
-  updateHistoryDisplay();
+  if (gameTitleInput && document.activeElement !== gameTitleInput) {
+    gameTitleInput.value = state.gameTitle || "";
+  }
+  if (prizeTitleInput && document.activeElement !== prizeTitleInput) {
+    prizeTitleInput.value = state.prizeTitle || "";
+  }
+  if (sponsorInput && document.activeElement !== sponsorInput) {
+    sponsorInput.value = state.sponsor || "";
+  }
+}
+
+/**
+ * Sincroniza visualmente el tablero completo 1-75 según el estado
+ */
+function renderBoardFromState(state) {
+  const drawn = state && Array.isArray(state.drawnBingoBalls) ? state.drawnBingoBalls : [];
+  for (let i = 1; i <= 75; i++) {
+    const ballEl = document.getElementById(i + "bingo");
+    if (!ballEl) continue;
+
+    const ballType = typeOfBingo(i);
+    if (drawn.indexOf(i) !== -1) {
+      ballEl.classList.add(ballType);
+    } else {
+      ballEl.classList.remove(
+        "bingoBallBallActiveB",
+        "bingoBallBallActiveI",
+        "bingoBallBallActiveN",
+        "bingoBallBallActiveG",
+        "bingoBallBallActiveO",
+        "bingoBallVintageActive"
+      );
+    }
+  }
 }
 
 /**
@@ -412,6 +424,7 @@ function updateBigBingoBall() {
   const bigBall = document.getElementById("bigBingoBall");
   const bigLetter = document.getElementById("bigBingoLetter");
   const bigNumber = document.getElementById("bigBingoNumber");
+  if (!bigBall || !bigLetter || !bigNumber) return;
 
   bigBall.classList.remove(
     "bingoBallBallActiveB",
@@ -422,8 +435,9 @@ function updateBigBingoBall() {
     "bigBingoBallVintage"
   );
 
-  if (saveData.drawnBingoBalls.length > 0) {
-    const currentLast = saveData.drawnBingoBalls[saveData.drawnBingoBalls.length - 1];
+  const drawn = saveData.drawnBingoBalls || [];
+  if (drawn.length > 0) {
+    const currentLast = drawn[drawn.length - 1];
     const ballType = typeOfBingo(currentLast);
     const letter = typeOfBingoLetter(currentLast);
 
@@ -438,46 +452,6 @@ function updateBigBingoBall() {
     bigLetter.innerHTML = "&nbsp;";
     bigNumber.innerHTML = "&nbsp;";
   }
-}
-
-function loadBingoBall(bingoIDNum) {
-  const typeOfBingoBall = typeOfBingo(bingoIDNum);
-  const bingoID = bingoIDNum + "bingo";
-  const ballEl = document.getElementById(bingoID);
-  if (ballEl) {
-    ballEl.classList.add(typeOfBingoBall);
-  }
-}
-
-function renderBingoStyle() {
-  if (saveData.bingoStyle === "ball") {
-    for (let i = 0; i < 75; i += 1) {
-      const el = document.getElementById(i + 1 + "bingo");
-      if (el) {
-        el.classList.remove("bingoBallVintage");
-        el.classList.add("bingoBallBall");
-      }
-    }
-  } else {
-    for (let i = 0; i < 75; i += 1) {
-      const el = document.getElementById(i + 1 + "bingo");
-      if (el) {
-        el.classList.remove("bingoBallBall");
-        el.classList.add("bingoBallVintage");
-      }
-    }
-  }
-}
-
-function changeBingoStyle(theStyle) {
-  saveData.bingoStyle = theStyle;
-  save();
-  renderBingoStyle();
-  for (let i = 0; i < saveData.drawnBingoBalls.length; i += 1) {
-    loadBingoBall(saveData.drawnBingoBalls[i]);
-  }
-  updateBigBingoBall();
-  setUpSettings();
 }
 
 function updateBallStats() {
@@ -526,12 +500,13 @@ function toggleBallsDrawnRemaining(renderOrToggle) {
       document.getElementById("ballsDrawn").style.display = "none";
       document.getElementById("ballsRemaining").style.display = "flex";
       saveData.ballsDrawnRemaining = "remaining";
-      save();
     } else {
       document.getElementById("ballsRemaining").style.display = "none";
       document.getElementById("ballsDrawn").style.display = "flex";
       saveData.ballsDrawnRemaining = "drawn";
-      save();
+    }
+    if (window.CopafaSync) {
+      window.CopafaSync.updateState({ ballsDrawnRemaining: saveData.ballsDrawnRemaining });
     }
   } else if (renderOrToggle === "render") {
     document.getElementById("ballsDrawnRemaining").style.visibility = "visible";
@@ -541,68 +516,50 @@ function toggleBallsDrawnRemaining(renderOrToggle) {
     } else {
       document.getElementById("ballsRemaining").style.display = "none";
       document.getElementById("ballsDrawn").style.display = "flex";
-      saveData.ballsDrawnRemaining = "drawn";
     }
   }
 }
 
-/**
- * Pide confirmación al usuario antes de reiniciar una partida.
- */
-function confirmResetBoard() {
-  const confirmed = window.confirm(
-    "¿Seguro que deseas iniciar una nueva partida? Se borrarán todos los números registrados."
-  );
-  if (confirmed) {
-    resetBoard();
+function renderBingoStyle() {
+  if (saveData.bingoStyle === "ball") {
+    for (let i = 0; i < 75; i += 1) {
+      const el = document.getElementById(i + 1 + "bingo");
+      if (el) {
+        el.classList.remove("bingoBallVintage");
+        el.classList.add("bingoBallBall");
+      }
+    }
+  } else {
+    for (let i = 0; i < 75; i += 1) {
+      const el = document.getElementById(i + 1 + "bingo");
+      if (el) {
+        el.classList.remove("bingoBallBall");
+        el.classList.add("bingoBallVintage");
+      }
+    }
   }
 }
 
-function resetBoard() {
-  for (let i = 0; i < 75; i += 1) {
-    const ballEl = document.getElementById(i + 1 + "bingo");
-    if (ballEl) {
-      ballEl.classList.remove(
-        "bingoBallBallActiveB",
-        "bingoBallBallActiveI",
-        "bingoBallBallActiveN",
-        "bingoBallBallActiveG",
-        "bingoBallBallActiveO",
-        "bingoBallVintageActive"
-      );
-    }
+function changeBingoStyle(theStyle) {
+  saveData.bingoStyle = theStyle;
+  if (window.CopafaSync) {
+    window.CopafaSync.updateState({ bingoStyle: theStyle });
   }
-
-  saveData.drawnBingoBalls = [];
-  save();
-
+  renderBingoStyle();
+  renderBoardFromState(saveData);
   updateBigBingoBall();
-
-  const bingoBallsClass = document.querySelectorAll(".bingoBalls");
-  for (let i = 0; i < bingoBallsClass.length; i += 1) {
-    bingoBallsClass[i].classList.add("notransition");
-    bingoBallsClass[i].style.opacity = 0;
-    setTimeout(() => {
-      bingoBallsClass[i].classList.remove("notransition");
-      bingoBallsClass[i].style.opacity = 1;
-    }, 100);
-  }
-
-  updateBallStats();
-  updateUndoButton();
-  updateHistoryDisplay();
+  setUpSettings();
 }
 
 function setUpMasterBoard() {
   renderBingoStyle();
-  for (let i = 0; i < saveData.drawnBingoBalls.length; i += 1) {
-    loadBingoBall(saveData.drawnBingoBalls[i]);
-  }
+  renderBoardFromState(saveData);
   updateBigBingoBall();
   toggleBallsDrawnRemaining("render");
   updateBallStats();
   updateUndoButton();
   updateHistoryDisplay();
+  populateGameDataUI(saveData);
 }
 
 function setUpSettings() {
@@ -633,6 +590,8 @@ function setUpSettings() {
 
 function changeBackgroundColor(theColor) {
   saveData.themeColor = theColor;
-  save();
+  if (window.CopafaSync) {
+    window.CopafaSync.updateState({ themeColor: theColor });
+  }
   setUpSettings();
 }

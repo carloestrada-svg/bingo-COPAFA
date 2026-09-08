@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <title>COPAFA Bingo</title>
+    <title>COPAFA Bingo - Panel del Operador</title>
 		<meta charset="UTF-8">
 		<meta name="description" content="Tablero de Control para Bingo COPAFA">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -77,6 +77,31 @@
             <span class="smallButton disabled" id="undoButton" onclick="undoLastBall();">Deshacer último</span>
             <span class="smallButton" id="themes" onclick="hide('masterBoardSlide');show('settingsSlide', 'grid');">Themes</span>
           </div>
+
+          <button type="button" id="openPublicBtn" class="operatorBtn publicLaunchBtn" onclick="window.open('publico.html', 'copafa_publico');" title="Abrir Pantalla Pública para Proyector">
+            ABRIR PANTALLA PÚBLICA
+          </button>
+
+          <!-- Bloque de Datos de Partida -->
+          <div id="gameDataPanel" class="gameDataPanel">
+            <div class="gameDataHeader">DATOS DE PARTIDA</div>
+            <div class="gameDataField">
+              <label for="inputGameTitle">Partida / Juego:</label>
+              <input type="text" id="inputGameTitle" placeholder="Ej. Bingo 1, 2do Juego..." maxlength="40" autocomplete="off">
+            </div>
+            <div class="gameDataField">
+              <label for="inputPrizeTitle">Premio:</label>
+              <input type="text" id="inputPrizeTitle" placeholder="Ej. S/ 1,000 / Smart TV..." maxlength="50" autocomplete="off">
+            </div>
+            <div class="gameDataField">
+              <label for="inputSponsor">Patrocinador (opcional):</label>
+              <input type="text" id="inputSponsor" placeholder="Ej. Caja Arequipa..." maxlength="50" autocomplete="off">
+            </div>
+            <button type="button" id="saveGameDataBtn" class="operatorBtn saveGameBtn" onclick="saveGameDataFromUI();">
+              GUARDAR DATOS
+            </button>
+          </div>
+
           <div id="recentHistoryContainer">
             <div id="recentHistoryTitle">ÚLTIMOS NÚMEROS</div>
             <div id="recentHistoryList">
@@ -255,6 +280,7 @@
 
     </div>
 
+    <script src="./assets/js/copafa-sync.js"></script>
     <script src="./assets/js/featureChecker.js"></script>
     <script src="./assets/js/main.js"></script>
 

@@ -1,0 +1,405 @@
+/**
+ * COPAFA Bingo - Estilos Exclusivos de la Vista Pública / Proyector
+ * Diseñado para proyección en 16:9 (1920x1080, 1280x720)
+ * Alto contraste y máxima legibilidad a distancia.
+ * 100% Pasivo (sin controles administrativos).
+ */
+
+@charset "UTF-8";
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Open Sans Regular'), local('OpenSans-Regular'),
+       url('../fonts/open-sans-v15-latin-regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Open Sans Bold'), local('OpenSans-Bold'),
+       url('../fonts/open-sans-v15-latin-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'arya';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../fonts/arya-v3-latin-700.woff2') format('woff2');
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #111418;
+  font-family: 'Open Sans', Arial, sans-serif;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Contenedor maestro 16:9 escalable */
+#publicWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#publicArea {
+  position: absolute;
+  width: 1280px;
+  height: 720px;
+  background: radial-gradient(circle at 40% 40%, #f7eaab, #bfbb73);
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  transform-origin: center center;
+}
+
+/* Barra Superior Institucional */
+.publicTopBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1280px;
+  height: 52px;
+  background: rgba(0, 0, 0, 0.18);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  z-index: 10;
+}
+
+.publicBrandTitle {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #8b0e12;
+  text-transform: uppercase;
+}
+
+.publicBrandSubtitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-left: 14px;
+}
+
+.publicFullscreenBtn {
+  width: 28px;
+  height: 28px;
+  background-image: url("../img/fullscreenUp.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.publicFullscreenBtn:hover {
+  opacity: 1;
+}
+
+/* Estructura Principal: Columna Informativa + Tablero 75 */
+.publicLayout {
+  position: absolute;
+  top: 52px;
+  left: 0;
+  width: 1280px;
+  height: 668px;
+  display: grid;
+  grid-template-columns: 310px 1fr;
+}
+
+/* ==========================================================================
+   COLUMNA IZQUIERDA: Tarjeta de Partida/Premio + Balota Gigante + Historial
+   ========================================================================== */
+.publicStageCol {
+  height: 100%;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: rgba(0, 0, 0, 0.04);
+  border-right: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Tarjeta Destacada de Juego y Premio */
+.publicGameCard {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1.5px solid rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.publicGameTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+  min-height: 25px;
+}
+
+.publicPrizeTitle {
+  font-size: 23px;
+  font-weight: 700;
+  color: #b7151a;
+  margin: 3px 0;
+  min-height: 29px;
+}
+
+.publicSponsor {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a4a4a;
+  margin-top: 3px;
+  min-height: 18px;
+}
+
+.publicSponsor.hidden {
+  display: none;
+}
+
+/* Balota Gigante del Último Número */
+.publicBigBallWrapper {
+  margin: 14px 0 6px 0;
+  text-align: center;
+}
+
+.publicBigBallLabel {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #444;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.publicBigBall {
+  width: 172px;
+  height: 172px;
+  border-radius: 50%;
+  background: #9b9b9b;
+  border: 3px solid #333;
+  opacity: 0.28;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, opacity 0.2s, transform 0.15s;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.publicBigBall.active {
+  opacity: 1;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.publicBigBallLetter {
+  font-size: 50px;
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 4px;
+}
+
+.publicBigBallNumber {
+  font-size: 86px;
+  font-weight: 700;
+  line-height: 0.9;
+  margin-top: -6px;
+}
+
+/* Contador de Balotas */
+.publicCounterBadge {
+  width: 220px;
+  height: 42px;
+  background: rgba(179, 162, 199, 0.75);
+  border: 1.5px solid rgba(74, 126, 187, 0.9);
+  border-radius: 10px;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  font-weight: 700;
+  color: #111;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.publicCounterBadge .counterNum {
+  font-size: 26px;
+  margin-right: 6px;
+  color: #000;
+}
+
+/* Franja de Últimos 5 Números */
+.publicRecentHistory {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.09);
+  border: 1.5px solid rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 8px 6px;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.publicHistoryTitle {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #444;
+  margin-bottom: 5px;
+}
+
+.publicHistoryList {
+  font-size: 14px;
+  font-weight: 700;
+  color: #222;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.publicHistoryEmpty {
+  font-size: 13px;
+  font-weight: normal;
+  color: #666;
+  font-style: italic;
+}
+
+.pubHistBall {
+  padding: 1px 3px;
+  border-radius: 4px;
+}
+
+.pubHistBallLatest {
+  background: rgba(206, 24, 30, 0.18);
+  color: #b7151a;
+  border: 1px solid rgba(206, 24, 30, 0.4);
+  padding: 2px 6px;
+}
+
+.pubHistSep {
+  color: #888;
+  margin: 0 2px;
+}
+
+/* ==========================================================================
+   COLUMNA DERECHA: Tablero 1 al 75 Pasivo
+   ========================================================================== */
+.publicBoardGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: 100%;
+  pointer-events: none; /* 100% PASIVO: CERO CLICS */
+}
+
+.publicCol {
+  border-left: 2px solid rgba(0, 0, 0, 0.3);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.publicLetterHeader {
+  font-family: 'arya', sans-serif;
+  font-weight: 700;
+  color: #ce181e;
+  font-size: 96px;
+  line-height: 0.8;
+  margin: 18px auto 8px auto;
+  text-align: center;
+}
+
+.publicBallsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-start;
+  width: 100%;
+  padding: 0 6px;
+  gap: 6px 12px;
+}
+
+.publicBall {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 58px;
+  height: 58px;
+  background: #9b9b9b;
+  font-size: 34px;
+  font-weight: 700;
+  border: 1px solid #333;
+  color: #000;
+  opacity: 0.22;
+  transition: opacity 0.2s, transform 0.15s, background-color 0.2s;
+}
+
+/* Balotas Activas por Columna */
+.publicBall.activeB {
+  background: #f79646;
+  border-color: #e46c0a;
+  color: #000;
+  opacity: 1;
+  box-shadow: 0 2px 8px rgba(228, 108, 10, 0.4);
+}
+
+.publicBall.activeI {
+  background: #9bbb59;
+  border-color: #77933c;
+  color: #000;
+  opacity: 1;
+  box-shadow: 0 2px 8px rgba(119, 147, 60, 0.4);
+}
+
+.publicBall.activeN {
+  background: #4bacc6;
+  border-color: #31859c;
+  color: #000;
+  opacity: 1;
+  box-shadow: 0 2px 8px rgba(49, 133, 156, 0.4);
+}
+
+.publicBall.activeG {
+  background: #b3a2c7;
+  border-color: #725892;
+  color: #000;
+  opacity: 1;
+  box-shadow: 0 2px 8px rgba(114, 88, 146, 0.4);
+}
+
+.publicBall.activeO {
+  background: #f89694;
+  border-color: #c0504d;
+  color: #000;
+  opacity: 1;
+  box-shadow: 0 2px 8px rgba(192, 80, 77, 0.4);
+}
